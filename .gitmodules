@@ -1,0 +1,6 @@
+[submodule "modules/variant"]
+	path = modules/variant
+	url = https://github.com/mpark/variant.git
+[submodule "modules/optional"]
+	path = modules/optional
+	url = https://github.com/TartanLlama/optional.git
