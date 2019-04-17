@@ -36,6 +36,7 @@ struct VariantOption {
     Option opt{};
     Variants variant{};
     OptionsVariant default_value{};
+    OptionsVariant value{};
     bool has_default = false;
 };
 

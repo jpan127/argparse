@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <cassert>
+#include <typeinfo>
 
 #include "variant.hpp"
 #include "options_helpers.h"
@@ -31,37 +32,29 @@ class Options {
             const auto &name = pair.first;
             const auto &option = pair.second;
             std::cout << kPrefix << name;
+            std::cout << "[" << detail::convert(option->variant) << "] ";
             if (option->has_default) {
-                std::cout << " (default=";
+                std::cout << "(default=";
                 detail::handle_variant(option->default_value, option->variant, [](const auto &v) {
                     std::cout << v;
                 });
                 std::cout << ")";
             }
-            std::cout << "[Help=" << option->opt.help << "]" << std::endl;
+            if (!option->opt.help.empty()) {
+                std::cout << "[Help=" << option->opt.help << "]";
+            }
+            std::cout << std::endl;
         }
     }
 
-    // /// @TODO : Make this string_view
-    // bool exists(const std::string &name) {
-    //     return (options_.find(name) != options_.end());
-    // }
+    std::shared_ptr<VariantOption> get(const std::string &name) {
+        const auto iterator = options_.find(name);
+        if (iterator != options_.end()) {
+            return iterator->second;
+        }
 
-    // template <typename T>
-    // std::shared_ptr<T> get(const std::string &name) {
-    //     const auto iterator = options_.find(name);
-    //     if (iterator != options_.end()) {
-    //         const auto voidptr = iterator->second;
-    //         const auto baseptr = std::static_pointer_cast<OptionBase>(voidptr);
-    //         return std::static_pointer_cast<Option<T>>(baseptr);
-    //     }
-
-    //     return nullptr;
-    // }
-
-    // auto operator->() {
-
-    // }
+        return nullptr;
+    }
 
   private:
     std::map<std::string, std::shared_ptr<VariantOption>> options_{};

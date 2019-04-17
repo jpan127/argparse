@@ -15,7 +15,7 @@ std::shared_ptr<VariantOption> add(const Option &options, const std::string &def
     auto ptr = std::make_shared<VariantOption>();
     ptr->opt = std::move(options);
     ptr->variant = kString;
-    ptr->default_value.emplace<kString>(default_value);
+    ptr->default_value.emplace<kString>(default_value.data());
     ptr->has_default = true;
     return ptr;
 }
@@ -80,6 +80,19 @@ void handle_variant(const OptionsVariant &variant, const Variants variant_type, 
     case kFloat  : cb(mpark::get<kFloat>(variant));  break;
     case kBool   : cb(mpark::get<kBool>(variant));   break;
     }
+}
+
+const char *convert(const Variants variant_type) {
+    switch (variant_type) {
+    case kString : return "std::string";
+    case kUint64 : return "uint64_t";
+    case kInt64  : return "int64_t";
+    case kDouble : return "double";
+    case kFloat  : return "float";
+    case kBool   : return "bool";
+    }
+
+    assert(false);
 }
 
 } // namespace detail
