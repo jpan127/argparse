@@ -1,7 +1,6 @@
 #pragma once
 
 #include "std_optional.h"
-#include "options_types.h"
 
 #include <string>
 #include <memory>
@@ -64,19 +63,6 @@ typename std::enable_if<!is_safely_castable<OutputType, InputType>::value, Outpu
 template <typename OutputType, std::size_t N>
 OutputType convert(const char (&input)[N]) {
     return convert_helper<OutputType, std::string>(std::string(input));
-}
-
-/// Convert from variant option to output type
-template <typename OutputType>
-OutputType convert(const std::shared_ptr<VariantOption> option) {
-    switch (option->variant) {
-    case kString : return detail::convert<OutputType, std::string>(pre_std::get<std::string>(option->value));
-    case kUint64 : return detail::convert<OutputType, uint64_t>(pre_std::get<uint64_t>(option->value));
-    case kInt64  : return detail::convert<OutputType, int64_t>(pre_std::get<int64_t>(option->value));
-    case kDouble : return detail::convert<OutputType, double>(pre_std::get<double>(option->value));
-    case kFloat  : return detail::convert<OutputType, float>(pre_std::get<float>(option->value));
-    case kBool   : return detail::convert<OutputType, bool>(pre_std::get<bool>(option->value));
-    }
 }
 
 } // namespace detail

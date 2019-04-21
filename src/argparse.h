@@ -18,7 +18,7 @@ namespace argparse {
 
 class Args {
   public:
-    void add(const std::string &name, const std::shared_ptr<VariantOption> option) {
+    void add(const std::string &name, const std::shared_ptr<Option> option) {
         args_[name] = option;
     }
 
@@ -28,7 +28,8 @@ class Args {
 
         const auto iterator = args_.find(name);
         if (iterator != args_.end()) {
-            return detail::convert<T>(iterator->second);
+            const auto option = iterator->second;
+            return option->convert<T>();
         }
 
         return {};
@@ -39,18 +40,23 @@ class Args {
     }
 
   private:
-    std::unordered_map<std::string, std::shared_ptr<VariantOption>> args_;
+    std::unordered_map<std::string, std::shared_ptr<Option>> args_;
 };
 
 class Parser {
   public:
-    Parser() = default;
-    Parser(const std::string &name, const std::string &help) : name_(name), help_(help){}
+    Parser(const std::string &name = "", const std::string &help = "") : name_(name), help_(help){}
 
     template <typename T>
-    void add(const Option &options, const T default_value = {}) {
+    void add(const Option::Config &config) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
-        options_.add<T>(options, default_value);
+        options_.add<T>(config);
+    }
+
+    template <typename T>
+    void add(const Option::Config &config, const T &default_value) {
+        static_assert(detail::acceptable<T>(), "Must be a valid type");
+        options_.add<T>(config, default_value);
     }
 
     void help() const {
@@ -61,7 +67,7 @@ class Parser {
     }
 
     const Args &parse(const int argc, const char **argv) {
-        for (std::size_t ii = 1; ii < argc; ii++) {
+        for (std::size_t ii = 1; ii < static_cast<std::size_t>(argc); ii++) {
             parse_arg(argv[ii]);
         }
 
@@ -120,16 +126,8 @@ class Parser {
         } else {
             auto option = options_.get(last_option_);
             if (option) {
-                std::cout << "Found : " << option->opt.name << " = " << s << std::endl;
-                switch (option->variant) {
-                case kString : option->value.emplace<std::string>(detail::convert_helper<std::string>(s)); break;
-                case kUint64 : option->value.emplace<uint64_t>(detail::convert_helper<uint64_t>(s)); break;
-                case kInt64  : option->value.emplace<int64_t>(detail::convert_helper<int64_t>(s)); break;
-                case kDouble : option->value.emplace<double>(detail::convert_helper<double>(s)); break;
-                case kFloat  : option->value.emplace<float>(detail::convert_helper<float>(s)); break;
-                case kBool   : option->value.emplace<bool>(detail::convert_helper<bool>(s)); break;
-                }
-                args_.add(option->opt.name, option);
+                option->set(std::move(s));
+                args_.add(option->name(), option);
             } else {
                 if (invalid_callback_) {
                     invalid_callback_(s);
