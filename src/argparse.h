@@ -173,7 +173,8 @@ class Parser {
             }
         }
 
-        return s;
+        // Non-pessimizing move since [s] is an rvalue reference
+        return std::move(s);
     }
 };
 
