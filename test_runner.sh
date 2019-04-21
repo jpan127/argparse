@@ -1,0 +1,3 @@
+clear
+
+./tests.exe -s
