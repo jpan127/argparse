@@ -27,7 +27,7 @@ using V = pre_std::variant<
     bool
 >;
 
-static_assert(kVariantsSize == pre_std::variant_size_v<V>);
+static_assert(kVariantsSize == pre_std::variant_size_v<V>, "");
 
 inline const char *enum_to_str(const Variants variant_type) {
     switch (variant_type) {
@@ -39,6 +39,8 @@ inline const char *enum_to_str(const Variants variant_type) {
     case kBool   : return "bool";
     default      : assert(false);
     }
+
+    return nullptr;
 }
 
 /// Convert variant value to string
@@ -58,6 +60,8 @@ inline std::string string(const V &variant) {
     case kBool   : return cb(pre_std::get<kBool>(variant));
     default      : assert(false);
     }
+
+    return "";
 }
 
 /// Output stream opreator for a variant
