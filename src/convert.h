@@ -2,10 +2,10 @@
 
 #include "std_optional.h"
 
-#include <string>
-#include <memory>
-#include <type_traits>
 #include <limits>
+#include <memory>
+#include <string>
+#include <type_traits>
 
 namespace argparse {
 namespace detail {
@@ -45,7 +45,7 @@ template <> std::string convert_helper(const uint64_t &input) { return std::to_s
 template <> std::string convert_helper(const int64_t &input) { return std::to_string(input); }
 template <> std::string convert_helper(const double &input) { return std::to_string(input); }
 template <> std::string convert_helper(const float &input) { return std::to_string(input); }
-template <> std::string convert_helper(const bool &input) { return std::to_string(input); }
+template <> std::string convert_helper(const bool &input) { return (input) ? "true" : "false"; }
 
 /// Dispatcher for static_cast-able conversions
 template <typename OutputType, typename InputType>
@@ -62,7 +62,7 @@ typename std::enable_if<!is_safely_castable<OutputType, InputType>::value, Outpu
 /// Dispatcher for cases from string literals
 template <typename OutputType, std::size_t N>
 OutputType convert(const char (&input)[N]) {
-    return convert_helper<OutputType, std::string>(std::string(input));
+    return convert_helper<OutputType, std::string>(std::string(static_cast<const char *>(input)));
 }
 
 } // namespace detail
