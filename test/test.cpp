@@ -1,7 +1,6 @@
 #include "catch.hpp"
 #include "argparse.h"
 
-#include <array>
 #include <cassert>
 
 using namespace argparse;
@@ -12,12 +11,13 @@ TEST_CASE("[Conversion] unsigned integers", "") {
 }
 
 TEST_CASE("[Parsing] simple parsing", "") {
+    constexpr uint64_t kDefaultVerboseLevel = 5;
     // Create parser
     Parser p("Sample Program", "Testing...");
     {
         p.add<uint64_t>({
             .name = "verbose"
-        }, 5);
+        }, kDefaultVerboseLevel);
         p.add<std::string>({
             .name = "mode",
             .help = "Select one of the options [a,b,c]"

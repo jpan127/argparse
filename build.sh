@@ -6,7 +6,6 @@ time                                    \
 clang++ -std=c++14 test/*.cpp           \
     -Xclang -flto-visibility-public-std \
     -Wall                               \
-    # -O3                                 \
     -Isrc                               \
     -Imodules/variant/include           \
     -Imodules/optional                  \

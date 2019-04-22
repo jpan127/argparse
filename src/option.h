@@ -1,8 +1,8 @@
 #pragma once
 
 #include "convert.h"
-#include "std_variant.h"
 #include "option_helpers.h"
+#include "std_variant.h"
 
 namespace argparse {
 
@@ -18,15 +18,12 @@ class Option {
 
     /// Constructor
     template <typename T>
-    Option(const Config &config, const T &default_value)
-        : config_(config),
+    Option(Config config, const T &default_value)
+        : config_(std::move(config)),
           type_(detail::deduce_variant<T>()),
           default_value_(detail::make_variant(default_value)),
           has_default_(true) {
     }
-
-    /// Destructor
-    ~Option() = default;
 
     /// Output stream operator
     friend std::ostream & operator<<(std::ostream &stream, const Option &opt) {
