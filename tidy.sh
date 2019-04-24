@@ -1,3 +1,4 @@
+#!/bin/sh
 clear
 
 SUPRESSED_CHECKS="\
@@ -14,7 +15,7 @@ SUPRESSED_CHECKS="\
 "
 
 clang-tidy.exe                 \
-  -checks=*,$SUPRESSED_CHECKS \
+  -checks=*,$SUPRESSED_CHECKS  \
   -header-filter=src/          \
   test/test.cpp                \
   --                           \

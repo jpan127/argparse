@@ -39,6 +39,17 @@ class Options {
         return nullptr;
     }
 
+    std::shared_ptr<Option> get(const char letter) {
+        for (const auto &pair : options_) {
+            const auto option = pair.second;
+            if (option->letter() == letter) {
+                return option;
+            }
+        }
+
+        return nullptr;
+    }
+
     auto begin() {
         return options_.begin();
     }
