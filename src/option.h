@@ -29,7 +29,7 @@ class Option {
     friend std::ostream & operator<<(std::ostream &stream, const Option &opt) {
         constexpr char kPrefix[] = "  - ";
         stream << kPrefix << opt.config_.name;
-        stream << "[" << enum_to_str(opt.type_) << "] ";
+        stream << "<" << enum_to_str(opt.type_) << "> ";
         if (opt.has_default_) {
             stream << "(default=";
             stream << opt.default_value_;
@@ -71,6 +71,18 @@ class Option {
 
     const std::string &name() const {
         return config_.name;
+    }
+
+    char letter() const {
+        return config_.letter;
+    }
+
+    Variants type() const {
+        return type_;
+    }
+
+    bool required() const {
+        return config_.required;
     }
 
   private:
