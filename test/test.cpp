@@ -123,3 +123,118 @@ TEST_CASE("[Parsing] help", "") {
         REQUIRE(num_times_help_called == 1);
     }
 }
+
+TEST_CASE("[Parsing] parser", "") {
+    // One option no value
+    {
+        argparse::detail::Parser p;
+        constexpr int argc = 2;
+        const char *argv[argc] = {
+            "path",
+            "--d"
+        };
+
+        p.parse(argc, argv);
+        const auto &args = p.args();
+        REQUIRE(args.size() == 1);
+        REQUIRE(args.find("d") != args.end());
+        REQUIRE(args.at("d").empty());
+    }
+
+    // One option no value
+    {
+        argparse::detail::Parser p;
+        constexpr int argc = 2;
+        const char *argv[argc] = {
+            "path",
+            "-d"
+        };
+
+        p.parse(argc, argv);
+        const auto &args = p.args();
+        REQUIRE(args.size() == 1);
+        REQUIRE(args.find("d") != args.end());
+        REQUIRE(args.at("d").empty());
+    }
+
+    // One option one value
+    {
+        argparse::detail::Parser p;
+        constexpr int argc = 3;
+        const char *argv[argc] = {
+            "path",
+            "--d",
+            "value",
+        };
+
+        p.parse(argc, argv);
+        const auto &args = p.args();
+        REQUIRE(args.size() == 1);
+        REQUIRE(args.find("d") != args.end());
+        REQUIRE(args.at("d").size() == 1);
+        REQUIRE(args.at("d")[0] == "value");
+    }
+
+    // One option 5 values
+    {
+        argparse::detail::Parser p;
+        constexpr int argc = 7;
+        constexpr std::size_t kNumValues = 5;
+        const char *argv[argc] = {
+            "path",
+            "--d",
+            "value1",
+            "value2",
+            "value3",
+            "value4",
+            "value5",
+        };
+
+        p.parse(argc, argv);
+        const auto &args = p.args();
+        REQUIRE(args.size() == 1);
+        REQUIRE(args.find("d") != args.end());
+        REQUIRE(args.at("d").size() == kNumValues);
+        const auto &vec = args.at("d");
+        for (std::size_t ii = 0; ii < kNumValues; ii++) {
+            REQUIRE(vec[ii] == argv[ii + 2]);
+        }
+    }
+
+    // 3 options with {1, 2, 3} values respectively
+    {
+        argparse::detail::Parser p;
+        constexpr int argc = 10;
+        const char *argv[argc] = {
+            "path",
+            "--a",
+            "value1",
+            "--b",
+            "value1",
+            "value2",
+            "--c",
+            "value1",
+            "value2",
+            "value3",
+        };
+
+        p.parse(argc, argv);
+        const auto &args = p.args();
+        REQUIRE(args.size() == 3);
+        REQUIRE(args.find("a") != args.end());
+        REQUIRE(args.find("b") != args.end());
+        REQUIRE(args.find("c") != args.end());
+        REQUIRE(args.at("a").size() == 1);
+        REQUIRE(args.at("b").size() == 2);
+        REQUIRE(args.at("c").size() == 3);
+        const auto &a = args.at("a");
+        const auto &b = args.at("b");
+        const auto &c = args.at("c");
+        REQUIRE(a[0] == "value1");
+        REQUIRE(b[0] == "value1");
+        REQUIRE(b[1] == "value2");
+        REQUIRE(c[0] == "value1");
+        REQUIRE(c[1] == "value2");
+        REQUIRE(c[2] == "value3");
+    }
+}

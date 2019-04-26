@@ -11,7 +11,9 @@ SUPRESSED_CHECKS="\
 -llvm-header-guard,\
 -fuchsia-overloaded-operator,\
 -misc-definitions-in-headers,\
--google-build-using-namespace\
+-google-build-using-namespace,\
+-cppcoreguidelines-pro-bounds-pointer-arithmetic,\
+-google-runtime-references\
 "
 
 clang-tidy.exe                 \
