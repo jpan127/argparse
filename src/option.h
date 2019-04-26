@@ -42,7 +42,7 @@ class Option {
         return stream;
     }
 
-    void set(std::string &&s) {
+    void set(const std::string &s) {
         switch (type_) {
         case kString : value_.emplace<std::string>(detail::convert_helper<std::string>(s)); break;
         case kUint64 : value_.emplace<uint64_t>(detail::convert_helper<uint64_t>(s)); break;
