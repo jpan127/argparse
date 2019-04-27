@@ -14,20 +14,18 @@ TEST_CASE("[Parsing] simple parsing", "") {
     constexpr uint64_t kDefaultVerboseLevel = 5;
     // Create parser
     Parser p("Sample Program", "Testing...");
-    {
-        p.add<uint64_t>({
-            .name = "verbose"
-        }, kDefaultVerboseLevel);
-        p.add<std::string>({
-            .name = "mode",
-            .help = "Select one of the options [a,b,c]"
-        }, "a");
-        p.add<bool>({
-            .name = "path",
-            .help = "",
-            .required = true
-        }, false);
-    }
+    const auto verbose = p.add<uint64_t>({
+        .name = "verbose"
+    }, kDefaultVerboseLevel);
+    const auto mode = p.add<std::string>({
+        .name = "mode",
+        .help = "Select one of the options [a,b,c]"
+    }, "a");
+    const auto path = p.add<bool>({
+        .name = "path",
+        .help = "",
+        .required = true
+    }, false);
 
     // Inputs
     constexpr const char *kVerboseLevel = "2";
@@ -42,19 +40,15 @@ TEST_CASE("[Parsing] simple parsing", "") {
         "--path",
     };
 
-    const auto &args = p.parse(argc, argv);
+    p.parse(argc, argv);
 
-    const auto verbose = args.get<uint64_t>("verbose");
-    const auto mode = args.get<std::string>("mode");
-    const auto path = args.get<bool>("path");
+    REQUIRE(verbose != nullptr);
+    REQUIRE(mode != nullptr);
+    REQUIRE(path != nullptr);
 
-    REQUIRE(verbose.has_value());
-    REQUIRE(mode.has_value());
-    REQUIRE(path.has_value());
-
-    REQUIRE(verbose.value() == 2);
-    REQUIRE(mode.value() == std::string(kMode));
-    REQUIRE(path.value() == true);
+    REQUIRE(*verbose == 2);
+    REQUIRE(*mode == std::string(kMode));
+    REQUIRE(*path == true);
 }
 
 TEST_CASE("[Parsing] help", "") {

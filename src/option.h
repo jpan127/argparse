@@ -4,6 +4,11 @@
 #include "option_helpers.h"
 #include "std_variant.h"
 
+#include <cassert>
+#include <memory>
+#include <ostream>
+#include <string>
+
 namespace argparse {
 
 class Option {
@@ -18,11 +23,13 @@ class Option {
 
     /// Constructor
     template <typename T>
-    Option(Config config, const T &default_value)
+    Option(std::shared_ptr<T> value, Config config, const T &default_value)
         : config_(std::move(config)),
           type_(detail::deduce_variant<T>()),
           default_value_(detail::make_variant(default_value)),
-          has_default_(true) {
+          has_default_(true),
+          value_handle_(value) {
+        assert(value_handle_);
     }
 
     /// Output stream operator
@@ -44,12 +51,12 @@ class Option {
 
     void set(const std::string &s) {
         switch (type_) {
-        case kString : value_.emplace<std::string>(detail::convert_helper<std::string>(s)); break;
-        case kUint64 : value_.emplace<uint64_t>(detail::convert_helper<uint64_t>(s)); break;
-        case kInt64  : value_.emplace<int64_t>(detail::convert_helper<int64_t>(s)); break;
-        case kDouble : value_.emplace<double>(detail::convert_helper<double>(s)); break;
-        case kFloat  : value_.emplace<float>(detail::convert_helper<float>(s)); break;
-        case kBool   : value_.emplace<bool>(detail::convert_helper<bool>(s)); break;
+        case kString : set_helper<std::string>(s); break;
+        case kUint64 : set_helper<uint64_t>(s); break;
+        case kInt64  : set_helper<int64_t>(s); break;
+        case kDouble : set_helper<double>(s); break;
+        case kFloat  : set_helper<float>(s); break;
+        case kBool   : set_helper<bool>(s); break;
         default      : assert(false);
         }
     }
@@ -93,6 +100,17 @@ class Option {
 
     /// Current value of the option
     V value_;
+
+    /// Handle to value to be populated
+    std::shared_ptr<void> value_handle_;
+
+    template <typename T>
+    void set_helper(const std::string &s) {
+        const auto value = detail::convert_helper<T>(s);
+        value_.emplace<T>(value);
+        auto typed_ptr = std::static_pointer_cast<T>(value_handle_);
+        *typed_ptr = value;
+    }
 };
 
 } // namespace argparse
