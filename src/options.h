@@ -54,11 +54,11 @@ class Options {
         return nullptr;
     }
 
-    auto begin() {
+    auto begin() const {
         return options_.begin();
     }
 
-    auto end() {
+    auto end() const {
         return options_.end();
     }
 

@@ -38,11 +38,13 @@ return_a=$(build_tests &)
 return_b=$(build_samples &)
 wait
 if [[ $return_a != "0" || $return_b != "0" ]]; then
+    echo "Failed builds"
     exit 1
 fi
 
 return_c=$(run_tests)
 if [[ $return_c != "0" ]]; then
+    echo "Failed tests"
     exit 1
 fi
 echo "Tests successful"

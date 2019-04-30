@@ -128,11 +128,10 @@ TEST_CASE("[Parsing] parser", "") {
             "--d"
         };
 
-        p.parse(argc, argv);
-        const auto &args = p.args();
+        const auto args = p.parse(argc, argv);
         REQUIRE(args.size() == 1);
-        REQUIRE(args.find("d") != args.end());
-        REQUIRE(args.at("d").empty());
+        REQUIRE(args.exists('d'));
+        REQUIRE(args.get('d').empty());
     }
 
     // One option no value
@@ -144,11 +143,10 @@ TEST_CASE("[Parsing] parser", "") {
             "-d"
         };
 
-        p.parse(argc, argv);
-        const auto &args = p.args();
+        const auto args = p.parse(argc, argv);
         REQUIRE(args.size() == 1);
-        REQUIRE(args.find("d") != args.end());
-        REQUIRE(args.at("d").empty());
+        REQUIRE(args.exists('d'));
+        REQUIRE(args.get('d').empty());
     }
 
     // One option one value
@@ -161,12 +159,11 @@ TEST_CASE("[Parsing] parser", "") {
             "value",
         };
 
-        p.parse(argc, argv);
-        const auto &args = p.args();
+        const auto args = p.parse(argc, argv);
         REQUIRE(args.size() == 1);
-        REQUIRE(args.find("d") != args.end());
-        REQUIRE(args.at("d").size() == 1);
-        REQUIRE(args.at("d")[0] == "value");
+        REQUIRE(args.exists('d'));
+        REQUIRE(args.get('d').size() == 1);
+        REQUIRE(args.get('d')[0] == "value");
     }
 
     // One option 5 values
@@ -184,12 +181,11 @@ TEST_CASE("[Parsing] parser", "") {
             "value5",
         };
 
-        p.parse(argc, argv);
-        const auto &args = p.args();
+        const auto args = p.parse(argc, argv);
         REQUIRE(args.size() == 1);
-        REQUIRE(args.find("d") != args.end());
-        REQUIRE(args.at("d").size() == kNumValues);
-        const auto &vec = args.at("d");
+        REQUIRE(args.exists('d'));
+        REQUIRE(args.get('d').size() == kNumValues);
+        const auto &vec = args.get('d');
         for (std::size_t ii = 0; ii < kNumValues; ii++) {
             REQUIRE(vec[ii] == argv[ii + 2]);
         }
@@ -212,19 +208,90 @@ TEST_CASE("[Parsing] parser", "") {
             "value3",
         };
 
-        p.parse(argc, argv);
-        const auto &args = p.args();
+        const auto args = p.parse(argc, argv);
         REQUIRE(args.size() == 3);
-        REQUIRE(args.find("a") != args.end());
-        REQUIRE(args.find("b") != args.end());
-        REQUIRE(args.find("c") != args.end());
-        REQUIRE(args.at("a").size() == 1);
-        REQUIRE(args.at("b").size() == 2);
-        REQUIRE(args.at("c").size() == 3);
-        const auto &a = args.at("a");
-        const auto &b = args.at("b");
-        const auto &c = args.at("c");
+        REQUIRE(args.exists('a'));
+        REQUIRE(args.exists('b'));
+        REQUIRE(args.exists('c'));
+        REQUIRE(args.get('a').size() == 1);
+        REQUIRE(args.get('b').size() == 2);
+        REQUIRE(args.get('c').size() == 3);
+        const auto &a = args.get('a');
+        const auto &b = args.get('b');
+        const auto &c = args.get('c');
         REQUIRE(a[0] == "value1");
+        REQUIRE(b[0] == "value1");
+        REQUIRE(b[1] == "value2");
+        REQUIRE(c[0] == "value1");
+        REQUIRE(c[1] == "value2");
+        REQUIRE(c[2] == "value3");
+    }
+}
+
+TEST_CASE("[Parsing] remaining arguments", "") {
+    // 3 options with {1, 2, 3} values respectively, none are expected
+    {
+        constexpr int argc = 10;
+        const char *argv[argc] = {
+            "path",
+            "--a",
+            "value1",
+            "--b",
+            "value1",
+            "value2",
+            "--c",
+            "value1",
+            "value2",
+            "value3",
+        };
+
+        Parser p("Sample Program", "Testing...");
+        const auto &remaining_args = p.parse(argc, argv);
+        REQUIRE(remaining_args.size() == 3);
+        REQUIRE(remaining_args.exists('a'));
+        REQUIRE(remaining_args.exists('b'));
+        REQUIRE(remaining_args.exists('c'));
+        REQUIRE(remaining_args.get('a').size() == 1);
+        REQUIRE(remaining_args.get('b').size() == 2);
+        REQUIRE(remaining_args.get('c').size() == 3);
+        const auto &a = remaining_args.get('a');
+        const auto &b = remaining_args.get('b');
+        const auto &c = remaining_args.get('c');
+        REQUIRE(a[0] == "value1");
+        REQUIRE(b[0] == "value1");
+        REQUIRE(b[1] == "value2");
+        REQUIRE(c[0] == "value1");
+        REQUIRE(c[1] == "value2");
+        REQUIRE(c[2] == "value3");
+    }
+
+    // 3 options with {1, 2, 3} values respectively, only one is expected
+    {
+        constexpr int argc = 10;
+        const char *argv[argc] = {
+            "path",
+            "--a",
+            "value1",
+            "--b",
+            "value1",
+            "value2",
+            "--c",
+            "value1",
+            "value2",
+            "value3",
+        };
+
+        Parser p("Sample Program", "Testing...");
+        p.add<std::string>({.letter = 'a'});
+
+        const auto &remaining_args = p.parse(argc, argv);
+        REQUIRE(remaining_args.size() == 2);
+        REQUIRE(remaining_args.exists('b'));
+        REQUIRE(remaining_args.exists('c'));
+        REQUIRE(remaining_args.get('b').size() == 2);
+        REQUIRE(remaining_args.get('c').size() == 3);
+        const auto &b = remaining_args.get('b');
+        const auto &c = remaining_args.get('c');
         REQUIRE(b[0] == "value1");
         REQUIRE(b[1] == "value2");
         REQUIRE(c[0] == "value1");

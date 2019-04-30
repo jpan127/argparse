@@ -8,7 +8,6 @@
 
 #include <stdio.h>
 
-#include "args.h"
 #include "convert.h"
 #include "options.h"
 #include "parser.h"
@@ -29,7 +28,7 @@ class Parser {
                 }
                 values_combined += " }";
                 const char *v = values.empty() ? "???" : values_combined.c_str();
-                printf("Argument invalid : [--%s=%s]\n", name.c_str(), v);
+                printf("Argument invalid : [ --%s = %s ]\n", name.c_str(), v);
             };
         std::function<void(const std::string &)> missing =
             [](const std::string &s) {
@@ -73,58 +72,23 @@ class Parser {
     }
 
     const Args &parse(const int argc, const char **argv) {
-        const auto &arg_map = parser_.parse(argc, argv);
-        for (const auto &pair : arg_map) {
-            const auto &name = pair.first;
-            const auto &values = pair.second;
-            auto option = (name.length() == 1) ? (options_.get(name[0])) : (options_.get(name));
-            if (option) {
-                if (option->type() == kBool) {
-                    option->set("true");
-                    args_.add(option->name(), option);
-                } else {
-                    if (values.empty()) {
-                        if (cbs_.missing) {
-                            cbs_.missing(name);
-                        }
-                    } else {
-                        /// @TODO : Only supporting one value right now
-                        option->set(values[0]);
-                        args_.add(option->name(), option);
-                    }
-                }
-            } else {
-                if (cbs_.invalid) {
-                    cbs_.invalid(name, values);
-                }
-            }
+        cross_check(parser_.parse(argc, argv));
+
+        // Print help if requested
+        const bool print_help = existing_args_.find("h")    != existing_args_.end() ||
+                                existing_args_.find("help") != existing_args_.end();
+        if (print_help) {
+            help();
+            cbs_.exit();
         }
 
         // Check against required arguments
-        bool missing_any = false;
-        for (const auto &pair : options_) {
-            const auto &name = pair.first;
-            const auto option = pair.second;
-            if (!args_.exists(name) && option->required()) {
-                if (cbs_.missing) {
-                    cbs_.missing(name);
-                }
-                missing_any = true;
-            }
-        }
-
-        if (missing_any) {
+        if (!check_requirements()) {
             help();
             cbs_.exit();
         }
 
-        const auto arg = args_.get<bool>("help");
-        if (arg.has_value()) {
-            help();
-            cbs_.exit();
-        }
-
-        return args_;
+        return remaining_args_;
     }
 
     void set_invalid_callback(std::function<void(const std::string &, const std::vector<std::string> &)> &&cb) {
@@ -150,8 +114,68 @@ class Parser {
 
     Callbacks cbs_;
     Options options_;
-    Args args_;
+    Args remaining_args_;
     detail::Parser parser_;
+    std::unordered_set<std::string> existing_args_;
+
+    void cross_check(Args && args) {
+        auto check = [this](auto &map) {
+            // Converts char or std::string into std::string
+            auto make_name_string = [](const auto &chars) {
+                std::string s;
+                s += chars;
+                return s;
+            };
+
+            for (auto &pair : map) {
+                const auto &name = pair.first;
+                auto &values = pair.second;
+                const auto name_string = make_name_string(name);
+
+                auto option = options_.get(name);
+                if (option) {
+                    if (option->type() == kBool) {
+                        option->set("true");
+                        existing_args_.insert(option->name());
+                    } else {
+                        if (values.empty()) {
+                            if (cbs_.missing) {
+                                cbs_.missing(name_string);
+                            }
+                        } else {
+                            // Only supporting one value right now
+                            option->set(values[0]);
+                            existing_args_.insert(option->name());
+                        }
+                    }
+                } else {
+                    if (cbs_.invalid) {
+                        cbs_.invalid(name_string, values);
+                    }
+
+                    remaining_args_.create(name, std::move(values));
+                }
+            }
+        };
+
+        check(args.letter_map());
+        check(args.string_map());
+    }
+
+    bool check_requirements() const {
+        bool met = true;
+        for (const auto &pair : options_) {
+            const auto &name = pair.first;
+            const auto option = pair.second;
+            if (option->required() && existing_args_.find(name) == existing_args_.end()) {
+                if (cbs_.missing) {
+                    cbs_.missing(std::string(name));
+                }
+                met = false;
+            }
+        }
+        return met;
+    }
 };
 
 } // namespace argparse
