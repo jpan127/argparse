@@ -8,52 +8,49 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace argparse {
 namespace detail {
 
 class Parser {
   public:
-    using ArgMap = std::unordered_map<std::string, std::vector<std::string>>;
-
-    const ArgMap& parse(const int argc, const char **argv) {
+    Args parse(const int argc, const char **argv) {
+        Args args{};
         std::string last_option;
+
         for (std::size_t ii = 1; ii < static_cast<std::size_t>(argc); ii++) {
-            // Store into vector
-            argv_.emplace_back(argv[ii]);
-            // Parse the argument
-            parse_arg(ii, last_option, argv[ii]);
+            parse_arg(args, last_option, argv[ii]);
         }
 
-        return arg_map_;
+        return args;
     }
 
-    void parse_arg(const std::size_t index, std::string &last_option, std::string s) {
+  private:
+    void parse_arg(Args &args, std::string &last_option, std::string s) {
         // If this is an option, set it as the option for future token
         if (is_option(s)) {
             strip_prefix(s);
             last_option = std::move(s);
-            arg_map_[last_option];
+            if (last_option.length() == 1) {
+                args.create(last_option[0]);
+            } else {
+                args.create(last_option);
+            }
         } else {
             // No last option means an option has not been found yet
             if (last_option.empty()) {
-                positional_args_.insert(index);
                 return;
             }
 
             // Map the option to this value
-            arg_map_[last_option].push_back(std::move(s));
+            if (last_option.length() == 1) {
+                args.insert(last_option[0], std::move(s));
+            } else {
+                args.insert(last_option, std::move(s));
+            }
         }
     }
-
-    const ArgMap &args() const {
-        return arg_map_;
-    }
-
-  private:
-    ArgMap arg_map_;
-    std::vector<std::string> argv_;
-    std::unordered_set<std::size_t> positional_args_;
 
     bool is_option(const std::string &s) {
         assert(s.length() > 0);

@@ -4,7 +4,7 @@
 # If it failed, then rerun with stdout stderr
 return_value=$?
 if [ $return_value != "0" ]; then
-    ./tests.exe
+    ./tests.exe -s
     exit 1
 fi
 
