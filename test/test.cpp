@@ -299,3 +299,18 @@ TEST_CASE("[Parsing] remaining arguments", "") {
         REQUIRE(c[2] == "value3");
     }
 }
+
+TEST_CASE("[Parsing] add with individual arguments", "") {
+    constexpr int argc = 3;
+    const char *argv[] = {
+        "path",
+        "--my_name",
+        "JP",
+    };
+
+    Parser p;
+    const auto my_name = p.add<std::string>("my_name", "my_help", 'a', true);
+    p.parse(argc, argv);
+
+    REQUIRE(*my_name == "JP");
+}

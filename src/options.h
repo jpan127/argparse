@@ -14,13 +14,6 @@ class Options {
 
   public:
     template <typename T>
-    std::shared_ptr<const T> add(const Option::Config &config) {
-        auto value_handle = std::make_shared<T>();
-        options_[config.name] = std::make_shared<Option>(value_handle, config, T{});
-        return value_handle;
-    }
-
-    template <typename T>
     std::shared_ptr<const T> add(const Option::Config &config, const T &default_value) {
         auto value_handle = std::make_shared<T>();
         options_[config.name] = std::make_shared<Option>(value_handle, config, default_value);
