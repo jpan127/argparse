@@ -48,14 +48,24 @@ class Parser {
     }
 
     template <typename T>
-    std::shared_ptr<const T> add(const Option::Config &config) {
+    std::shared_ptr<const T> add(const Option::Config &config, const T &default_value = T{}) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
-        return options_.add<T>(config);
+        return options_.add<T>(config, default_value);
     }
 
     template <typename T>
-    std::shared_ptr<const T> add(const Option::Config &config, const T &default_value) {
+    std::shared_ptr<const T> add(const std::string &name,
+                                 const std::string &help = "",
+                                 const char letter = Option::Config::kUnusedChar,
+                                 const bool required = false,
+                                 const T &default_value = T{}) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
+        const Option::Config config{
+            .name = name,
+            .help = help,
+            .letter = letter,
+            .required = required,
+        };
         return options_.add<T>(config, default_value);
     }
 

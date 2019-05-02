@@ -15,6 +15,7 @@ class Option {
   public:
     /// Configuration of the option
     struct Config {
+        static constexpr char kUnusedChar = 0;
         std::string name{};
         std::string help{};
         bool required = false;
