@@ -314,3 +314,64 @@ TEST_CASE("[Parsing] add with individual arguments", "") {
 
     REQUIRE(*my_name == "JP");
 }
+
+TEST_CASE("Using letter not name", "Letter") {
+    // Only the letter
+    {
+        constexpr int argc = 3;
+        const char *argv[] = {
+            "path",
+            "-d",
+            "Wednesday",
+        };
+
+        Parser p;
+        const auto day = p.add<std::string>({
+            .letter = 'd',
+            .required = true,
+        });
+        p.parse(argc, argv);
+
+        REQUIRE(*day == "Wednesday");
+    }
+
+    // Name and letter, but use letter
+    {
+        constexpr int argc = 3;
+        const char *argv[] = {
+            "path",
+            "-d",
+            "Wednesday",
+        };
+
+        Parser p;
+        const auto day = p.add<std::string>({
+            .name = "day",
+            .letter = 'd',
+            .required = true,
+        });
+        p.parse(argc, argv);
+
+        REQUIRE(*day == "Wednesday");
+    }
+
+    // Name and letter, but use name
+    {
+        constexpr int argc = 3;
+        const char *argv[] = {
+            "path",
+            "--day",
+            "Wednesday",
+        };
+
+        Parser p;
+        const auto day = p.add<std::string>({
+            .name = "day",
+            .letter = 'd',
+            .required = true,
+        });
+        p.parse(argc, argv);
+
+        REQUIRE(*day == "Wednesday");
+    }
+}
