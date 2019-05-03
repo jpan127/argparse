@@ -3,16 +3,20 @@
 #include "convert.h"
 #include "option_helpers.h"
 #include "std_variant.h"
+#include "table.h"
 
 #include <cassert>
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <string>
 
 namespace argparse {
 
 class Option {
   public:
+    using OptionTable = Table<4, Alignment::Center>;
+
     /// Configuration of the option
     struct Config {
         static constexpr char kUnusedChar = 0;
@@ -33,21 +37,19 @@ class Option {
         assert(value_handle_);
     }
 
-    /// Output stream operator
-    friend std::ostream & operator<<(std::ostream &stream, const Option &opt) {
-        constexpr char kPrefix[] = "  - ";
-        stream << kPrefix << opt.config_.name;
-        stream << "<" << enum_to_str(opt.type_) << "> ";
-        if (opt.has_default_) {
-            stream << "(default=";
-            stream << opt.default_value_;
-            stream << ")";
-        }
-        if (!opt.config_.help.empty()) {
-            stream << "[Help=" << opt.config_.help << "]";
+    OptionTable::Row to_string() const {
+        // Stringify default value
+        std::stringstream ss;
+        if (has_default_) {
+            ss << default_value_;
         }
 
-        return stream;
+        return {{
+            config_.name,
+            enum_to_str(type_),
+            ss.str(),
+            config_.help
+        }};
     }
 
     void set(const std::string &s) {

@@ -13,6 +13,7 @@ SUPRESSED_CHECKS="\
 -misc-definitions-in-headers,\
 -google-build-using-namespace,\
 -cppcoreguidelines-pro-bounds-pointer-arithmetic,\
+-cppcoreguidelines-pro-bounds-constant-array-index,\
 -google-runtime-references\
 "
 

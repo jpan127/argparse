@@ -10,6 +10,7 @@
 namespace argparse {
 
 class Options {
+    using OptionTable = Option::OptionTable;
     using MapType = std::unordered_map<std::string, std::shared_ptr<Option>>;
 
   public:
@@ -21,10 +22,14 @@ class Options {
     }
 
     void display() const {
+        OptionTable table({{"Name", "Type", "Default", "Help"}});
+
         for (const auto &pair : options_) {
             const auto &option = pair.second;
-            std::cout << (*option) << std::endl;
+            table.add_row(option->to_string());
         }
+
+        std::cout << table.display();
     }
 
     std::shared_ptr<Option> get(const std::string &name) {
