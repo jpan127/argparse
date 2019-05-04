@@ -20,25 +20,10 @@ namespace argparse {
 class Parser {
   public:
     struct Callbacks {
+        std::function<void()> exit;
         std::function<void()> help;
-        std::function<void()> exit =
-            [] {
-                throw std::runtime_error("Parsing failed");
-            };
-        std::function<void(const std::string &, const std::vector<std::string> &)> invalid =
-            [](const std::string &name, const std::vector<std::string> &values) {
-                std::string values_combined = "{";
-                for (const auto &value : values) {
-                    values_combined += " " + value;
-                }
-                values_combined += " }";
-                const char *v = values.empty() ? "???" : values_combined.c_str();
-                printf("Argument invalid : [ --%s = %s ]\n", name.c_str(), v);
-            };
-        std::function<void(const std::string &)> missing =
-            [](const std::string &s) {
-                std::cout << "Missing required argument : " << s << std::endl;
-            };
+        std::function<void(const std::string &)> missing;
+        std::function<void(const std::string &, const std::vector<std::string> &)> invalid;
     };
 
     Parser(const std::string &name = "", const std::string &help = "")
@@ -50,6 +35,8 @@ class Parser {
             .help = "Show help message",
             .required = false,
         }, false);
+
+        set_default_callbacks();
     }
 
     template <typename T>
@@ -125,6 +112,21 @@ class Parser {
         );
     }
 
+    /// For each valid callback, sets it
+    /// Ignores null callback objects so existing callback will not be overwritten
+    void set_callbacks(Callbacks &&cbs) {
+        auto move_if_exists = [](auto &src, auto &dest) {
+            if (src) {
+                dest = std::move(src);
+            }
+        };
+
+        move_if_exists(cbs.exit, cbs_.exit);
+        move_if_exists(cbs.help, cbs_.help);
+        move_if_exists(cbs.missing, cbs_.missing);
+        move_if_exists(cbs.invalid, cbs_.invalid);
+    }
+
     void help() const {
         std::cout
             << "Usage       : " << name_ << " [Options(s)]...\n"
@@ -155,23 +157,6 @@ class Parser {
         }
 
         return remaining_args_;
-    }
-
-    void set_invalid_callback(std::function<void(const std::string &, const std::vector<std::string> &)> &&cb) {
-        assert(cb);
-        cbs_.invalid = std::move(cb);
-    }
-    void set_missing_callback(std::function<void(const std::string &)> &&cb) {
-        assert(cb);
-        cbs_.missing = std::move(cb);
-    }
-    void set_exit_callback(std::function<void()> &&cb) {
-        assert(cb);
-        cbs_.exit = std::move(cb);
-    }
-    void set_help_callback(std::function<void()> &&cb) {
-        assert(cb);
-        cbs_.help = std::move(cb);
     }
 
   private:
@@ -266,6 +251,23 @@ class Parser {
             }
         }
         return met;
+    }
+
+    /// Set the default callbacks into [cbs_]
+    void set_default_callbacks() {
+        cbs_.exit = [] { throw std::runtime_error("Parsing failed"); };
+        cbs_.missing = [](const auto &s) {
+            std::cout << "Missing required argument : " << s << std::endl;
+        };
+        cbs_.invalid = [](const auto &name, const auto &values) {
+            std::string values_combined = "{";
+            for (const auto &value : values) {
+                values_combined += " " + value;
+            }
+            values_combined += " }";
+            const char *v = values.empty() ? "???" : values_combined.c_str();
+            printf("Argument invalid : [ --%s = %s ]\n", name.c_str(), v);
+        };
     }
 };
 
