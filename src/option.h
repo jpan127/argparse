@@ -134,21 +134,6 @@ class Option {
         return false;
     }
 
-    template <typename OutputType>
-    OutputType convert() const {
-        switch (type_) {
-        case kString : return detail::convert<OutputType, std::string>(pre_std::get<std::string>(value_));
-        case kUint64 : return detail::convert<OutputType, uint64_t>(pre_std::get<uint64_t>(value_));
-        case kInt64  : return detail::convert<OutputType, int64_t>(pre_std::get<int64_t>(value_));
-        case kDouble : return detail::convert<OutputType, double>(pre_std::get<double>(value_));
-        case kFloat  : return detail::convert<OutputType, float>(pre_std::get<float>(value_));
-        case kBool   : return detail::convert<OutputType, bool>(pre_std::get<bool>(value_));
-        default      : assert(false);
-        }
-
-        return OutputType{};
-    }
-
     const std::string &name() const {
         return config_.name;
     }

@@ -18,14 +18,11 @@ template <> constexpr Variants deduce_variant<float>() { return kFloat; }
 template <> constexpr Variants deduce_variant<bool>() { return kBool; }
 /// @}
 
-/// @{ Creates a variant given the initial value
-inline V make_variant(const std::string &default_value) { return V{default_value}; }
-inline V make_variant(const uint64_t &default_value) { return V{default_value}; }
-inline V make_variant(const int64_t &default_value) { return V{default_value}; }
-inline V make_variant(const double &default_value) { return V{default_value}; }
-inline V make_variant(const float &default_value) { return V{default_value}; }
-inline V make_variant(const bool &default_value) { return V{default_value}; }
-/// @}
+/// Creates a variant given the initial value
+template <typename T>
+V make_variant(const T &default_value) {
+    return V{default_value};
+}
 
 template <typename T>
 std::unordered_set<V> make_variants(std::unordered_set<T> &&in) {
