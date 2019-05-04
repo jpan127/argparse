@@ -15,14 +15,20 @@ class Options {
 
   public:
     template <typename T>
-    std::shared_ptr<const T> add(const Option::Config &config, const T &default_value) {
-        auto value_handle = std::make_shared<T>();
-        options_[config.name] = std::make_shared<Option>(value_handle, config, default_value);
-        return value_handle;
+    ConstPlaceHolder<T> add(const Option::Config &config, const T &default_value,
+                            std::unordered_set<T> &&allowed_values = {}) {
+        auto placeholder = std::make_shared<PlaceHolderType<T>>();
+        options_[config.name] = std::make_shared<Option>(
+            placeholder,
+            config,
+            default_value,
+            std::forward<std::unordered_set<T>>(allowed_values)
+        );
+        return placeholder;
     }
 
     void display() const {
-        OptionTable table({{"Name", "Type", "Default", "Help"}});
+        OptionTable table({{"Name", "Type", "Default", "Help", "Allowed Values"}});
 
         for (const auto &pair : options_) {
             const auto &option = pair.second;

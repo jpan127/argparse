@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <type_traits>
+#include <unordered_set>
 
 #include <stdio.h>
 
@@ -48,17 +49,38 @@ class Parser {
     }
 
     template <typename T>
-    std::shared_ptr<const T> add(const Option::Config &config, const T &default_value = T{}) {
+    ConstPlaceHolder<T> add(const Option::Config &config, const T &default_value,
+                            std::unordered_set<T> &&allowed_values) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
-        return options_.add<T>(config, default_value);
+        return options_.add<T>(
+            config,
+            default_value,
+            std::forward<std::unordered_set<T>>(allowed_values)
+        );
     }
 
     template <typename T>
-    std::shared_ptr<const T> add(const std::string &name,
-                                 const std::string &help = "",
-                                 const char letter = Option::Config::kUnusedChar,
-                                 const bool required = false,
-                                 const T &default_value = T{}) {
+    ConstPlaceHolder<T> add(const Option::Config &config, const T &default_value) {
+        return add<T>(config, default_value, {});
+    }
+
+    template <typename T>
+    ConstPlaceHolder<T> add(const Option::Config &config, std::unordered_set<T> &&allowed_values) {
+        return add<T>(config, T{}, std::forward<std::unordered_set<T>>(allowed_values));
+    }
+
+    template <typename T>
+    ConstPlaceHolder<T> add(const Option::Config &config) {
+        return add<T>(config, T{}, {});
+    }
+
+    template <typename T>
+    ConstPlaceHolder<T> add(const std::string &name,
+                            const std::string &help = "",
+                            const char letter = Option::Config::kUnusedChar,
+                            const bool required = false,
+                            const T &default_value = T{},
+                            std::unordered_set<T> &&allowed_values = {}) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
         const Option::Config config{
             .name = name,
@@ -66,7 +88,11 @@ class Parser {
             .letter = letter,
             .required = required,
         };
-        return options_.add<T>(config, default_value);
+        return options_.add<T>(
+            config,
+            default_value,
+            std::forward<std::unordered_set<T>>(allowed_values)
+        );
     }
 
     void help() const {
@@ -145,7 +171,11 @@ class Parser {
                 auto option = options_.get(name);
                 if (option) {
                     if (option->type() == kBool) {
-                        option->set("true");
+                        if (!option->set("true")) {
+                            if (cbs_.invalid) {
+                                cbs_.invalid(name_string, {"true"});
+                            }
+                        }
                         existing_args_.insert(option->name());
                     } else {
                         if (values.empty()) {
@@ -154,7 +184,11 @@ class Parser {
                             }
                         } else {
                             // Only supporting one value right now
-                            option->set(values[0]);
+                            if (!option->set(values[0])) {
+                                if (cbs_.invalid) {
+                                    cbs_.invalid(name_string, {values[0]});
+                                }
+                            }
                             existing_args_.insert(option->name());
                         }
                     }

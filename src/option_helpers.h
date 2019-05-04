@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_set>
 
 #include "option_types.h"
 
@@ -18,13 +19,22 @@ template <> constexpr Variants deduce_variant<bool>() { return kBool; }
 /// @}
 
 /// @{ Creates a variant given the initial value
-V make_variant(const std::string &default_value) { return V{default_value}; }
-V make_variant(const uint64_t &default_value) { return V{default_value}; }
-V make_variant(const int64_t &default_value) { return V{default_value}; }
-V make_variant(const double &default_value) { return V{default_value}; }
-V make_variant(const float &default_value) { return V{default_value}; }
-V make_variant(const bool &default_value) { return V{default_value}; }
+inline V make_variant(const std::string &default_value) { return V{default_value}; }
+inline V make_variant(const uint64_t &default_value) { return V{default_value}; }
+inline V make_variant(const int64_t &default_value) { return V{default_value}; }
+inline V make_variant(const double &default_value) { return V{default_value}; }
+inline V make_variant(const float &default_value) { return V{default_value}; }
+inline V make_variant(const bool &default_value) { return V{default_value}; }
 /// @}
+
+template <typename T>
+std::unordered_set<V> make_variants(std::unordered_set<T> &&in) {
+    std::unordered_set<V> out;
+    for (auto &&value : in) {
+        out.insert(make_variant(value));
+    }
+    return out;
+}
 
 template <typename T>
 constexpr bool acceptable() {

@@ -33,19 +33,19 @@ template <typename OutputType, typename InputType>
 OutputType convert_helper(const InputType &input);
 
 /// Specializations for from std::string
-template <> std::string convert_helper(const std::string &input) { return input; }
-template <> uint64_t convert_helper(const std::string &input) { return std::stoull(input); }
-template <> int64_t convert_helper(const std::string &input) { return std::stoll(input); }
-template <> double convert_helper(const std::string &input) { return std::stod(input); }
-template <> float convert_helper(const std::string &input) { return std::stof(input); }
-template <> bool convert_helper(const std::string &input) { return (input == "true" || input == "True"); }
+template <> inline std::string convert_helper(const std::string &input) { return input; }
+template <> inline uint64_t convert_helper(const std::string &input) { return std::stoull(input); }
+template <> inline int64_t convert_helper(const std::string &input) { return std::stoll(input); }
+template <> inline double convert_helper(const std::string &input) { return std::stod(input); }
+template <> inline float convert_helper(const std::string &input) { return std::stof(input); }
+template <> inline bool convert_helper(const std::string &input) { return (input == "true" || input == "True"); }
 
 /// Specializations for to std::string
-template <> std::string convert_helper(const uint64_t &input) { return std::to_string(input); }
-template <> std::string convert_helper(const int64_t &input) { return std::to_string(input); }
-template <> std::string convert_helper(const double &input) { return std::to_string(input); }
-template <> std::string convert_helper(const float &input) { return std::to_string(input); }
-template <> std::string convert_helper(const bool &input) { return (input) ? "true" : "false"; }
+template <> inline std::string convert_helper(const uint64_t &input) { return std::to_string(input); }
+template <> inline std::string convert_helper(const int64_t &input) { return std::to_string(input); }
+template <> inline std::string convert_helper(const double &input) { return std::to_string(input); }
+template <> inline std::string convert_helper(const float &input) { return std::to_string(input); }
+template <> inline std::string convert_helper(const bool &input) { return (input) ? "true" : "false"; }
 
 /// Dispatcher for static_cast-able conversions
 template <typename OutputType, typename InputType>

@@ -46,9 +46,13 @@ TEST_CASE("[Parsing] simple parsing", "") {
     REQUIRE(mode != nullptr);
     REQUIRE(path != nullptr);
 
-    REQUIRE(*verbose == 2);
-    REQUIRE(*mode == std::string(kMode));
-    REQUIRE(*path == true);
+    REQUIRE(verbose->has_value());
+    REQUIRE(mode->has_value());
+    REQUIRE(path->has_value());
+
+    REQUIRE(verbose->value() == 2);
+    REQUIRE(mode->value() == std::string(kMode));
+    REQUIRE(path->value() == true);
 }
 
 TEST_CASE("[Parsing] help", "") {
@@ -312,7 +316,9 @@ TEST_CASE("[Parsing] add with individual arguments", "") {
     const auto my_name = p.add<std::string>("my_name", "my_help", 'a', true);
     p.parse(argc, argv);
 
-    REQUIRE(*my_name == "JP");
+    REQUIRE(my_name != nullptr);
+    REQUIRE(my_name->has_value());
+    REQUIRE(my_name->value() == "JP");
 }
 
 TEST_CASE("Using letter not name", "Letter") {
@@ -332,7 +338,9 @@ TEST_CASE("Using letter not name", "Letter") {
         });
         p.parse(argc, argv);
 
-        REQUIRE(*day == "Wednesday");
+        REQUIRE(day != nullptr);
+        REQUIRE(day->has_value());
+        REQUIRE(day->value() == "Wednesday");
     }
 
     // Name and letter, but use letter
@@ -352,7 +360,9 @@ TEST_CASE("Using letter not name", "Letter") {
         });
         p.parse(argc, argv);
 
-        REQUIRE(*day == "Wednesday");
+        REQUIRE(day != nullptr);
+        REQUIRE(day->has_value());
+        REQUIRE(day->value() == "Wednesday");
     }
 
     // Name and letter, but use name
@@ -372,6 +382,8 @@ TEST_CASE("Using letter not name", "Letter") {
         });
         p.parse(argc, argv);
 
-        REQUIRE(*day == "Wednesday");
+        REQUIRE(day != nullptr);
+        REQUIRE(day->has_value());
+        REQUIRE(day->value() == "Wednesday");
     }
 }
