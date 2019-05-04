@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "argparse.h"
+#include "utilities.h"
 
 #include <cassert>
 
@@ -14,6 +15,7 @@ TEST_CASE("[Parsing] simple parsing", "") {
     constexpr uint64_t kDefaultVerboseLevel = 5;
     // Create parser
     Parser p("Sample Program", "Testing...");
+    replace_exit_cb(p);
     const auto verbose = p.add<uint64_t>({
         .name = "verbose"
     }, kDefaultVerboseLevel);
@@ -60,6 +62,7 @@ TEST_CASE("[Parsing] help", "") {
 
     auto make_parser = [&num_times_help_called](const bool required) {
         Parser p("Sample Program", "Testing...");
+        replace_exit_cb(p);
         p.add<std::string>({
             .name = "mode",
             .required = required,

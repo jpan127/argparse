@@ -15,7 +15,7 @@ class Options {
 
   public:
     template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config, const T &default_value,
+    ConstPlaceHolder<T> add(const Option::Config &config, const pre_std::optional<T> &default_value,
                             std::unordered_set<T> &&allowed_values = {}) {
         auto placeholder = std::make_shared<PlaceHolderType<T>>();
         options_[config.name] = std::make_shared<Option>(

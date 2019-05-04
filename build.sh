@@ -10,6 +10,7 @@ build_tests() {
         -Wall                               \
         -Isrc                               \
         -Imodules/variant/include           \
+        -Imodules/test                      \
         -Imodules/optional                  \
         -Imodules/catch2                    \
         -o tests.exe
