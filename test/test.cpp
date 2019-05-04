@@ -67,8 +67,9 @@ TEST_CASE("[Parsing] help", "") {
             .name = "mode",
             .required = required,
         }, "a");
-        p.set_help_callback([&num_times_help_called] { num_times_help_called++; });
-        p.set_exit_callback([]{});
+        p.set_callbacks({
+            .help = [&num_times_help_called] { num_times_help_called++; },
+        });
         return p;
     };
 

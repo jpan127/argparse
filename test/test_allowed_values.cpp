@@ -41,7 +41,9 @@ TEST_CASE("incorrect allowed values", "Parsing") {
     };
 
     bool called = false;
-    p.set_invalid_callback([&called](auto, auto) { called = true; });
+    p.set_callbacks({
+        .invalid = [&called](auto, auto) { called = true; }
+    });
 
     p.parse(argc, argv);
 
