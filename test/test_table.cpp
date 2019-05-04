@@ -1,9 +1,8 @@
 #include "catch.hpp"
+
 #include "table.h"
 
-#include <iostream>
-
-TEST_CASE("center alignment", "Table") {
+TEST_CASE("CenterAlignment", "Table") {
     static constexpr char kExpected[] =
         "--------------------\n"
         "|first|second|third|\n"
@@ -13,11 +12,10 @@ TEST_CASE("center alignment", "Table") {
 
     Table<3> table({{"first", "second", "third"}});
     table.add_row({{"a", "b", "c"}});
-    std::cout << table.display();
     REQUIRE(table.display() == std::string(kExpected));
 }
 
-TEST_CASE("left alignment", "Table") {
+TEST_CASE("LeftAlignment", "Table") {
     static constexpr char kExpected[] =
         "--------------------\n"
         "|first|second|third|\n"
@@ -27,11 +25,10 @@ TEST_CASE("left alignment", "Table") {
 
     Table<3, Alignment::Left> table({{"first", "second", "third"}});
     table.add_row({{"a", "b", "c"}});
-    std::cout << table.display();
     REQUIRE(table.display() == std::string(kExpected));
 }
 
-TEST_CASE("right alignment", "Table") {
+TEST_CASE("RightAlignment", "Table") {
     static constexpr char kExpected[] =
         "--------------------\n"
         "|first|second|third|\n"
@@ -41,11 +38,10 @@ TEST_CASE("right alignment", "Table") {
 
     Table<3, Alignment::Right> table({{"first", "second", "third"}});
     table.add_row({{"a", "b", "c"}});
-    std::cout << table.display();
     REQUIRE(table.display() == std::string(kExpected));
 }
 
-TEST_CASE("big table", "Table") {
+TEST_CASE("Big", "Table") {
     static constexpr char kExpected[] =
         "-----------------------------------------------------\n"
         "|COLUMN_1 |COLUMN_2|  COLUMN_3   |COLUMN_4 |COLUMN_5|\n"
@@ -63,6 +59,5 @@ TEST_CASE("big table", "Table") {
     table.add_row({{"hellooo", "myyy", "beautifulll", "worlddd", "!!!"}});
     table.add_row({{"helloooo", "myyyy", "beautifullll", "worldddd", "!!!!"}});
     table.add_row({{"hellooooo", "myyyyy", "beautifulllll", "worlddddd", "!!!!!"}});
-    std::cout << table.display();
     REQUIRE(table.display() == std::string(kExpected));
 }
