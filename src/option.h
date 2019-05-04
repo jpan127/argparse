@@ -2,6 +2,7 @@
 
 #include "convert.h"
 #include "option_helpers.h"
+#include "placeholder.h"
 #include "std_variant.h"
 #include "table.h"
 
@@ -10,12 +11,14 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 
 namespace argparse {
 
 class Option {
   public:
-    using OptionTable = Table<4, Alignment::Center>;
+    static constexpr std::size_t kTableSize = 5;
+    using OptionTable = Table<kTableSize, Alignment::Center>;
 
     /// Configuration of the option
     struct Config {
@@ -28,40 +31,62 @@ class Option {
 
     /// Constructor
     template <typename T>
-    Option(std::shared_ptr<T> value, Config config, const T &default_value)
+    Option(const PlaceHolder<T> &placeholder, Config config, const T &default_value,
+           std::unordered_set<T> &&allowed_values)
         : config_(std::move(config)),
           type_(detail::deduce_variant<T>()),
           default_value_(detail::make_variant(default_value)),
+          allowed_values_(detail::make_variants(std::forward<std::unordered_set<T>>(allowed_values))),
           has_default_(true),
-          value_handle_(value) {
-        assert(value_handle_);
+          placeholder_(placeholder) {
+
+        assert(placeholder_);
     }
 
     OptionTable::Row to_string() const {
         // Stringify default value
-        std::stringstream ss;
+        std::stringstream default_value_str;
         if (has_default_) {
-            ss << default_value_;
+            default_value_str << default_value_;
+        }
+
+        std::string allowed_values_str;
+        if (!allowed_values_.empty()) {
+            std::stringstream ss;
+            ss << " ";
+            constexpr char kSeparator[] = " , ";
+            for (const auto &v : allowed_values_) {
+                ss << v << kSeparator;
+            }
+
+            // Erase last separator
+            allowed_values_str = ss.str();
+            allowed_values_str.erase(allowed_values_str.length() - strlen(kSeparator));
+            allowed_values_str += " ";
         }
 
         return {{
             config_.name,
             enum_to_str(type_),
-            ss.str(),
-            config_.help
+            default_value_str.str(),
+            config_.help,
+            allowed_values_str,
         }};
     }
 
-    void set(const std::string &s) {
+    /// \returns True if set successfully, false if not (value is not allowed)
+    bool set(const std::string &s) {
         switch (type_) {
-        case kString : set_helper<std::string>(s); break;
-        case kUint64 : set_helper<uint64_t>(s); break;
-        case kInt64  : set_helper<int64_t>(s); break;
-        case kDouble : set_helper<double>(s); break;
-        case kFloat  : set_helper<float>(s); break;
-        case kBool   : set_helper<bool>(s); break;
+        case kString : return set_helper<std::string>(s); break;
+        case kUint64 : return set_helper<uint64_t>(s); break;
+        case kInt64  : return set_helper<int64_t>(s); break;
+        case kDouble : return set_helper<double>(s); break;
+        case kFloat  : return set_helper<float>(s); break;
+        case kBool   : return set_helper<bool>(s); break;
         default      : assert(false);
         }
+
+        return false;
     }
 
     template <typename OutputType>
@@ -99,20 +124,40 @@ class Option {
     const Config config_;
     const Variants type_;
     const V default_value_;
+    const std::unordered_set<V> allowed_values_;
     const bool has_default_;
 
     /// Current value of the option
     V value_;
 
     /// Handle to value to be populated
-    std::shared_ptr<void> value_handle_;
+    std::shared_ptr<void> placeholder_;
 
+    /// \returns True if set successfully, false if not (value is not allowed)
     template <typename T>
-    void set_helper(const std::string &s) {
+    bool set_helper(const std::string &s) {
         const auto value = detail::convert_helper<T>(s);
+
+        // Check
+        if (!allowed_values_.empty()) {
+            bool matched = false;
+            for (const auto &v : allowed_values_) {
+                const auto &allowed_value = pre_std::get<T>(v);
+                if (value == allowed_value) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                return false;
+            }
+        }
+
         value_.emplace<T>(value);
-        auto typed_ptr = std::static_pointer_cast<T>(value_handle_);
+        auto typed_ptr = std::static_pointer_cast<PlaceHolderType<T>>(placeholder_);
         *typed_ptr = value;
+
+        return true;
     }
 };
 

@@ -4,7 +4,7 @@ using namespace argparse;
 
 int main(int argc, char const *argv[])
 {
-    constexpr uint64_t kDefaultVerboseLevel = 5;
+    uint64_t kDefaultVerboseLevel = 5;
     // Create parser
     Parser p("Sample Program", "Testing...");
     {
@@ -13,13 +13,17 @@ int main(int argc, char const *argv[])
         }, kDefaultVerboseLevel);
         p.add<std::string>({
             .name = "mode",
-            .help = "Select one of the options [a,b,c]"
-        }, "a");
+            .help = "Operation mode of this program"
+        }, {"a", "b", "c"});
         p.add<bool>({
             .name = "path",
             .help = "",
             .required = true
         }, false);
+        p.add<int64_t>({
+            .name = "id",
+            .help = "some identification number"
+        }, {1234, 9999, 127127127});
     }
 
     p.parse(argc, argv);
