@@ -1,10 +1,12 @@
 #include "catch.hpp"
 #include "argparse.h"
+#include "utilities.h"
 
 using namespace argparse;
 
 TEST_CASE("correct allowed values", "Parsing") {
     Parser p;
+    replace_exit_cb(p);
     const auto &mode = p.add<std::string>({
         .name = "mode",
         .required = true,
@@ -25,6 +27,7 @@ TEST_CASE("correct allowed values", "Parsing") {
 
 TEST_CASE("incorrect allowed values", "Parsing") {
     Parser p;
+    replace_exit_cb(p);
     const auto &mode = p.add<std::string>({
         .name = "mode",
         .required = true,

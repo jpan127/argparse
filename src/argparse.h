@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <string>
 #include <type_traits>
@@ -20,7 +21,10 @@ class Parser {
   public:
     struct Callbacks {
         std::function<void()> help;
-        std::function<void()> exit = [] { ::exit(-1); };
+        std::function<void()> exit =
+            [] {
+                throw std::runtime_error("Parsing failed");
+            };
         std::function<void(const std::string &, const std::vector<std::string> &)> invalid =
             [](const std::string &name, const std::vector<std::string> &values) {
                 std::string values_combined = "{";
@@ -49,7 +53,7 @@ class Parser {
     }
 
     template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config, const T &default_value,
+    ConstPlaceHolder<T> add(const Option::Config &config, const pre_std::optional<T> &default_value,
                             std::unordered_set<T> &&allowed_values) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
         return options_.add<T>(
@@ -60,18 +64,18 @@ class Parser {
     }
 
     template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config, const T &default_value) {
+    ConstPlaceHolder<T> add(const Option::Config &config, const pre_std::optional<T> &default_value) {
         return add<T>(config, default_value, {});
     }
 
     template <typename T>
     ConstPlaceHolder<T> add(const Option::Config &config, std::unordered_set<T> &&allowed_values) {
-        return add<T>(config, T{}, std::forward<std::unordered_set<T>>(allowed_values));
+        return add<T>(config, {}, std::forward<std::unordered_set<T>>(allowed_values));
     }
 
     template <typename T>
     ConstPlaceHolder<T> add(const Option::Config &config) {
-        return add<T>(config, T{}, {});
+        return add<T>(config, {}, {});
     }
 
     template <typename T>
@@ -79,7 +83,7 @@ class Parser {
                             const std::string &help = "",
                             const char letter = Option::Config::kUnusedChar,
                             const bool required = false,
-                            const T &default_value = T{},
+                            const pre_std::optional<T> &default_value = T{},
                             std::unordered_set<T> &&allowed_values = {}) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
         const Option::Config config{

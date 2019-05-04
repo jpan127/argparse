@@ -31,23 +31,28 @@ class Option {
 
     /// Constructor
     template <typename T>
-    Option(const PlaceHolder<T> &placeholder, Config config, const T &default_value,
+    Option(const PlaceHolder<T> &placeholder, Config config, const pre_std::optional<T> &default_value,
            std::unordered_set<T> &&allowed_values)
         : config_(std::move(config)),
           type_(detail::deduce_variant<T>()),
-          default_value_(detail::make_variant(default_value)),
+          default_value_(determine_default_value(default_value)),
           allowed_values_(detail::make_variants(std::forward<std::unordered_set<T>>(allowed_values))),
-          has_default_(true),
           placeholder_(placeholder) {
 
         assert(placeholder_);
+
+        // Set default value
+        if (default_value.has_value()) {
+            auto typed_ptr = std::static_pointer_cast<PlaceHolderType<T>>(placeholder_);
+            *typed_ptr = default_value.value();
+        }
     }
 
     OptionTable::Row to_string() const {
         // Stringify default value
         std::stringstream default_value_str;
-        if (has_default_) {
-            default_value_str << default_value_;
+        if (default_value_.has_value()) {
+            default_value_str << default_value_.value();
         }
 
         std::string allowed_values_str;
@@ -123,15 +128,24 @@ class Option {
   private:
     const Config config_;
     const Variants type_;
-    const V default_value_;
+    const pre_std::optional<V> default_value_;
     const std::unordered_set<V> allowed_values_;
-    const bool has_default_;
 
     /// Current value of the option
     V value_;
 
     /// Handle to value to be populated
     std::shared_ptr<void> placeholder_;
+
+    /// Determines the value of [default_value_]
+    template <typename T>
+    pre_std::optional<V> determine_default_value(const pre_std::optional<T> &default_value) {
+        if (default_value.has_value()) {
+            return detail::make_variant(default_value.value());
+        }
+
+        return {};
+    }
 
     /// \returns True if set successfully, false if not (value is not allowed)
     template <typename T>
