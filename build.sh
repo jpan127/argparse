@@ -13,7 +13,8 @@ build_tests() {
         -Imodules/test                      \
         -Imodules/optional                  \
         -Imodules/catch2                    \
-        -o tests.exe
+        -o tests.exe                        \
+        >&2
     echo $?
 }
 
@@ -21,17 +22,17 @@ build_samples() {
     time                                    \
     clang++ -std=c++14 sample/*.cpp         \
         -Xclang -flto-visibility-public-std \
-        -Wall                               \
         -Isrc                               \
         -Imodules/variant/include           \
         -Imodules/optional                  \
         -Imodules/catch2                    \
-        -o sample.exe
+        -o sample.exe                       \
+        >&2
     echo $?
 }
 
 run_tests() {
-    ./test_runner.sh
+    ./test_runner.sh >&2
     echo $?
 }
 

@@ -64,7 +64,7 @@ inline std::string string(const V &variant) {
     return "";
 }
 
-/// Output stream opreator for a variant
+/// Output stream operator for a variant
 inline std::ostream & operator<<(std::ostream &stream, const V &variant) {
     const auto s = string(variant);
     stream << s;
