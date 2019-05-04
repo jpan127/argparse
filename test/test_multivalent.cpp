@@ -1,7 +1,7 @@
 #include "catch.hpp"
+
 #include "argparse.h"
 #include "utilities.h"
-
 using namespace argparse;
 
 TEST_CASE("MultivalentOption", "Parsing") {

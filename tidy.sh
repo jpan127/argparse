@@ -14,13 +14,14 @@ SUPRESSED_CHECKS="\
 -google-build-using-namespace,\
 -cppcoreguidelines-pro-bounds-pointer-arithmetic,\
 -cppcoreguidelines-pro-bounds-constant-array-index,\
+-readability-named-parameter,\
 -google-runtime-references\
 "
 
 clang-tidy.exe                 \
   -checks=*,$SUPRESSED_CHECKS  \
   -header-filter=src/          \
-  test/test.cpp                \
+  test/test_help.cpp           \
   --                           \
   -std=c++14                   \
   -Imodules/variant/include    \
