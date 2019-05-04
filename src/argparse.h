@@ -53,6 +53,32 @@ class Parser {
     }
 
     template <typename T>
+    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pre_std::optional<T> &default_value,
+                                                     std::unordered_set<T> &&allowed_values) {
+        static_assert(detail::acceptable<T>(), "Must be a valid type");
+        return options_.add_multivalent<T>(
+            config,
+            default_value,
+            std::forward<std::unordered_set<T>>(allowed_values)
+        );
+    }
+
+    template <typename T>
+    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pre_std::optional<T> &default_value) {
+        return add_multivalent<T>(config, default_value, {});
+    }
+
+    template <typename T>
+    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, std::unordered_set<T> &&allowed_values) {
+        return add_multivalent<T>(config, {}, std::forward<std::unordered_set<T>>(allowed_values));
+    }
+
+    template <typename T>
+    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config) {
+        return add_multivalent<T>(config, {}, {});
+    }
+
+    template <typename T>
     ConstPlaceHolder<T> add(const Option::Config &config, const pre_std::optional<T> &default_value,
                             std::unordered_set<T> &&allowed_values) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
@@ -187,12 +213,29 @@ class Parser {
                                 cbs_.missing(name_string);
                             }
                         } else {
-                            // Only supporting one value right now
-                            if (!option->set(values[0])) {
-                                if (cbs_.invalid) {
-                                    cbs_.invalid(name_string, {values[0]});
+                            if (option->multivalent()) {
+                                // Multivalent, set all values
+                                if (!option->set(values)) {
+                                    if (cbs_.invalid) {
+                                        cbs_.invalid(name_string, values);
+                                    }
+                                }
+                            } else {
+                                // Not multivalent, should not have more than 1 value
+                                if (values.size() > 1) {
+                                    if (cbs_.invalid) {
+                                        cbs_.invalid(name_string, values);
+                                    }
+                                } else {
+                                    // Not multivalent, only one value
+                                    if (!option->set(values[0])) {
+                                        if (cbs_.invalid) {
+                                            cbs_.invalid(name_string, {values[0]});
+                                        }
+                                    }
                                 }
                             }
+
                             existing_args_.insert(option->name());
                         }
                     }

@@ -26,10 +26,10 @@ class Option {
         std::string name{};
         std::string help{};
         bool required = false;
-        char letter{};
+        char letter = kUnusedChar;
     };
 
-    /// Constructor
+    /// Single Constructor
     template <typename T>
     Option(const PlaceHolder<T> &placeholder, Config config, const pre_std::optional<T> &default_value,
            std::unordered_set<T> &&allowed_values)
@@ -45,6 +45,27 @@ class Option {
         if (default_value.has_value()) {
             auto typed_ptr = std::static_pointer_cast<PlaceHolderType<T>>(placeholder_);
             *typed_ptr = default_value.value();
+        }
+    }
+
+    /// Multivalent Constructor
+    template <typename T>
+    Option(const PlaceHolder<std::vector<T>> &placeholder, Config config, const pre_std::optional<T> &default_value,
+           std::unordered_set<T> &&allowed_values)
+        : config_(std::move(config)),
+          type_(detail::deduce_variant<T>()),
+          default_value_(determine_default_value(default_value)),
+          allowed_values_(detail::make_variants(std::forward<std::unordered_set<T>>(allowed_values))),
+          multivalent_(true),
+          placeholder_(placeholder) {
+
+        assert(placeholder_);
+
+        // Set default value
+        if (default_value.has_value()) {
+            auto typed_ptr = std::static_pointer_cast<PlaceHolderType<std::vector<T>>>(placeholder_);
+            auto &optional = *typed_ptr;
+            optional->push_back(default_value.value());
         }
     }
 
@@ -81,6 +102,25 @@ class Option {
 
     /// \returns True if set successfully, false if not (value is not allowed)
     bool set(const std::string &s) {
+        assert(!multivalent_);
+
+        switch (type_) {
+        case kString : return set_helper<std::string>(s); break;
+        case kUint64 : return set_helper<uint64_t>(s); break;
+        case kInt64  : return set_helper<int64_t>(s); break;
+        case kDouble : return set_helper<double>(s); break;
+        case kFloat  : return set_helper<float>(s); break;
+        case kBool   : return set_helper<bool>(s); break;
+        default      : assert(false);
+        }
+
+        return false;
+    }
+
+    /// \returns True if set successfully, false if not (value is not allowed)
+    bool set(const std::vector<std::string> &s) {
+        assert(multivalent_);
+
         switch (type_) {
         case kString : return set_helper<std::string>(s); break;
         case kUint64 : return set_helper<uint64_t>(s); break;
@@ -125,11 +165,16 @@ class Option {
         return config_.required;
     }
 
+    bool multivalent() const {
+        return multivalent_;
+    }
+
   private:
     const Config config_;
     const Variants type_;
     const pre_std::optional<V> default_value_;
     const std::unordered_set<V> allowed_values_;
+    const bool multivalent_ = false;
 
     /// Current value of the option
     V value_;
@@ -170,6 +215,37 @@ class Option {
         value_.emplace<T>(value);
         auto typed_ptr = std::static_pointer_cast<PlaceHolderType<T>>(placeholder_);
         *typed_ptr = value;
+
+        return true;
+    }
+
+    /// \returns True if set successfully, false if not (value is not allowed)
+    template <typename T>
+    bool set_helper(const std::vector<std::string> &s) {
+        auto typed_ptr = std::static_pointer_cast<PlaceHolderType<std::vector<T>>>(placeholder_);
+        auto &optional = *typed_ptr;
+        optional.emplace();
+
+        for (const auto &each : s) {
+            const auto value = detail::convert_helper<T>(each);
+
+            // Check
+            if (!allowed_values_.empty()) {
+                bool matched = false;
+                for (const auto &v : allowed_values_) {
+                    const auto &allowed_value = pre_std::get<T>(v);
+                    if (value == allowed_value) {
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    return false;
+                }
+            }
+
+            optional->push_back(value);
+        }
 
         return true;
     }

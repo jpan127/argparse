@@ -16,8 +16,21 @@ class Options {
   public:
     template <typename T>
     ConstPlaceHolder<T> add(const Option::Config &config, const pre_std::optional<T> &default_value,
-                            std::unordered_set<T> &&allowed_values = {}) {
+                            std::unordered_set<T> &&allowed_values) {
         auto placeholder = std::make_shared<PlaceHolderType<T>>();
+        options_[config.name] = std::make_shared<Option>(
+            placeholder,
+            config,
+            default_value,
+            std::forward<std::unordered_set<T>>(allowed_values)
+        );
+        return placeholder;
+    }
+
+    template <typename T>
+    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pre_std::optional<T> &default_value,
+                                                     std::unordered_set<T> &&allowed_values) {
+        auto placeholder = std::make_shared<PlaceHolderType<std::vector<T>>>();
         options_[config.name] = std::make_shared<Option>(
             placeholder,
             config,
