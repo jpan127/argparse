@@ -19,7 +19,7 @@ class Parser {
         Args args{};
         std::string last_option;
 
-        for (std::size_t ii = 1; ii < static_cast<std::size_t>(argc); ii++) {
+        for (std::size_t ii = 0; ii < static_cast<std::size_t>(argc); ii++) {
             parse_arg(args, last_option, argv[ii]);
         }
 

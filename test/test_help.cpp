@@ -14,8 +14,9 @@ TEST_CASE("HelpMessage", "Parsing") {
     });
 
     SECTION("No required args, so none are missing") {
-        constexpr int argc = 0;
+        constexpr int argc = 1;
         const char *argv[] = {
+            "path",
         };
 
         p.add<std::string>({
@@ -27,8 +28,9 @@ TEST_CASE("HelpMessage", "Parsing") {
     }
 
     SECTION("One required arg, so one is missing") {
-        constexpr int argc = 0;
+        constexpr int argc = 1;
         const char *argv[] = {
+            "path",
         };
 
         p.add<std::string>({

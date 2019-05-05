@@ -32,7 +32,7 @@ build_samples() {
 }
 
 run_tests() {
-    ./test_runner.sh >&2
+    ./test_runner.sh $1 >&2
     echo $?
 }
 
@@ -44,7 +44,7 @@ if [[ $return_a != "0" || $return_b != "0" ]]; then
     exit 1
 fi
 
-return_c=$(run_tests)
+return_c=$(run_tests $1)
 if [[ $return_c != "0" ]]; then
     echo "Failed tests"
     exit 1
