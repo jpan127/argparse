@@ -139,8 +139,90 @@ class Parser {
         }
     }
 
+    /// Parse arguments
+    /// \return Remaining, non-parsed arguments
     const Args &parse(const int argc, const char **argv) {
-        cross_check(parser_.parse(argc, argv));
+        assert(argv);
+        return parse(argc, argv, true);
+    }
+
+    std::unordered_map<std::string, Parser> &add_subparser(std::string &&group,
+                                                           std::unordered_set<std::string> &&allowed_values) {
+        if (subparser_.has_value()) {
+            std::cout << "Can only register one subparser per parser" << std::endl;
+            if (cbs_.exit) {
+                cbs_.exit();
+                return subparser_.value();
+            }
+        }
+
+        subparser_group_ = std::move(group);
+        subparser_.emplace();
+
+        for (auto &&av : allowed_values) {
+            subparser_->insert({av, Parser(std::move(av))});
+        }
+
+        return subparser_.value();
+    }
+
+    const std::string &subparser() const {
+        return selected_subparser_;
+    }
+
+  private:
+    const std::string name_ = "No Name";
+    const std::string help_ = "No Help";
+
+    Callbacks cbs_;
+    Options options_;
+    Args remaining_args_;
+    detail::Parser parser_;
+    std::unordered_set<std::string> existing_args_;
+
+    /// Map of subparser name to subparser
+    pre_std::optional<std::unordered_map<std::string, Parser>> subparser_;
+
+    /// Name of the subparser group
+    pre_std::optional<std::string> subparser_group_;
+
+    /// Chosen subparser from the subparser group
+    std::string selected_subparser_;
+
+    /// Parse arguments
+    /// \param pop_first To remove the first argument or not
+    /// \return          Remaining, non-parsed arguments
+    const Args &parse(const int argc, const char **argv, const bool pop_first) {
+        // If pop first, decrement size, increment pointer
+        const int new_argc = (pop_first) ? (argc - 1) : (argc);
+        const char **new_argv = (pop_first) ? (argv + 1) : (argv);
+
+        // If subparsers exists
+        if (subparser_.has_value()) {
+            // Check for subparser option, should have at least one argument
+            if (new_argc <= 0) {
+                if (cbs_.missing) {
+                    cbs_.missing(subparser_group_.value());
+                }
+                return remaining_args_;
+            }
+
+            // Select subparser
+            selected_subparser_ = new_argv[0];
+            const auto iterator = subparser_->find(selected_subparser_);
+            if (iterator == subparser_->end()) {
+                if (cbs_.invalid) {
+                    cbs_.invalid(subparser_group_.value(), {selected_subparser_});
+                    return remaining_args_;
+                }
+            }
+
+            // Let the subparser do the remainder of the parsing
+            auto &parser = (*subparser_)[selected_subparser_];
+            return parser.parse(new_argc, new_argv, true);
+        }
+
+        cross_check(parser_.parse(new_argc, new_argv));
 
         // Print help if requested
         const bool print_help = existing_args_.find("h")    != existing_args_.end() ||
@@ -158,16 +240,6 @@ class Parser {
 
         return remaining_args_;
     }
-
-  private:
-    const std::string name_ = "No Name";
-    const std::string help_ = "No Help";
-
-    Callbacks cbs_;
-    Options options_;
-    Args remaining_args_;
-    detail::Parser parser_;
-    std::unordered_set<std::string> existing_args_;
 
     void cross_check(Args && args) {
         auto check = [this](auto &map) {
