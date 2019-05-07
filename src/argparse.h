@@ -257,7 +257,7 @@ class Parser {
 
                 auto option = options_.get(name);
                 if (option) {
-                    if (option->type() == kBool) {
+                    if (option->type() == Variant::Type::kBool) {
                         if (!option->set("true")) {
                             if (cbs_.invalid) {
                                 cbs_.invalid(name_string, {"true"});
