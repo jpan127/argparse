@@ -1,10 +1,9 @@
 #pragma once
 
 #include "convert.h"
-#include "option_helpers.h"
 #include "placeholder.h"
-#include "std_variant.h"
 #include "table.h"
+#include "variant.h"
 
 #include <cassert>
 #include <memory>
@@ -70,19 +69,13 @@ class Option {
     }
 
     OptionTable::Row to_string() const {
-        // Stringify default value
-        std::stringstream default_value_str;
-        if (default_value_.has_value()) {
-            default_value_str << default_value_.value();
-        }
-
         std::string allowed_values_str;
         if (!allowed_values_.empty()) {
             std::stringstream ss;
             ss << " ";
             constexpr char kSeparator[] = " , ";
-            for (const auto &v : allowed_values_) {
-                ss << v << kSeparator;
+            for (auto &v : allowed_values_) {
+                ss << v.string() << kSeparator;
             }
 
             // Erase last separator
@@ -93,8 +86,8 @@ class Option {
 
         return {{
             config_.name,
-            enum_to_str(type_),
-            default_value_str.str(),
+            Variant::enum_to_str(type_),
+            default_value_->string(),
             config_.help,
             allowed_values_str,
         }};
@@ -105,13 +98,13 @@ class Option {
         assert(!multivalent_);
 
         switch (type_) {
-        case kString : return set_helper<std::string>(s); break;
-        case kUint64 : return set_helper<uint64_t>(s); break;
-        case kInt64  : return set_helper<int64_t>(s); break;
-        case kDouble : return set_helper<double>(s); break;
-        case kFloat  : return set_helper<float>(s); break;
-        case kBool   : return set_helper<bool>(s); break;
-        default      : assert(false);
+        case Variant::Type::kString : return set_helper<std::string>(s); break;
+        case Variant::Type::kUint64 : return set_helper<uint64_t>(s); break;
+        case Variant::Type::kInt64  : return set_helper<int64_t>(s); break;
+        case Variant::Type::kDouble : return set_helper<double>(s); break;
+        case Variant::Type::kFloat  : return set_helper<float>(s); break;
+        case Variant::Type::kBool   : return set_helper<bool>(s); break;
+        default                     : assert(false);
         }
 
         return false;
@@ -122,13 +115,13 @@ class Option {
         assert(multivalent_);
 
         switch (type_) {
-        case kString : return set_helper<std::string>(s); break;
-        case kUint64 : return set_helper<uint64_t>(s); break;
-        case kInt64  : return set_helper<int64_t>(s); break;
-        case kDouble : return set_helper<double>(s); break;
-        case kFloat  : return set_helper<float>(s); break;
-        case kBool   : return set_helper<bool>(s); break;
-        default      : assert(false);
+        case Variant::Type::kString : return set_helper<std::string>(s); break;
+        case Variant::Type::kUint64 : return set_helper<uint64_t>(s); break;
+        case Variant::Type::kInt64  : return set_helper<int64_t>(s); break;
+        case Variant::Type::kDouble : return set_helper<double>(s); break;
+        case Variant::Type::kFloat  : return set_helper<float>(s); break;
+        case Variant::Type::kBool   : return set_helper<bool>(s); break;
+        default                     : assert(false);
         }
 
         return false;
@@ -142,7 +135,7 @@ class Option {
         return config_.letter;
     }
 
-    Variants type() const {
+    Variant::Type type() const {
         return type_;
     }
 
@@ -156,20 +149,17 @@ class Option {
 
   private:
     const Config config_;
-    const Variants type_;
-    const pre_std::optional<V> default_value_;
-    const std::unordered_set<V> allowed_values_;
+    const Variant::Type type_;
+    const pre_std::optional<Variant> default_value_;
+    const std::unordered_set<Variant, Variant::hash> allowed_values_;
     const bool multivalent_ = false;
-
-    /// Current value of the option
-    V value_;
 
     /// Handle to value to be populated
     std::shared_ptr<void> placeholder_;
 
     /// Determines the value of [default_value_]
     template <typename T>
-    pre_std::optional<V> determine_default_value(const pre_std::optional<T> &default_value) {
+    pre_std::optional<Variant> determine_default_value(const pre_std::optional<T> &default_value) {
         if (default_value.has_value()) {
             return detail::make_variant(default_value.value());
         }
@@ -186,7 +176,7 @@ class Option {
         if (!allowed_values_.empty()) {
             bool matched = false;
             for (const auto &v : allowed_values_) {
-                const auto &allowed_value = pre_std::get<T>(v);
+                const auto &allowed_value = v.get<T>();
                 if (value == allowed_value) {
                     matched = true;
                     break;
@@ -197,7 +187,6 @@ class Option {
             }
         }
 
-        value_.emplace<T>(value);
         auto typed_ptr = std::static_pointer_cast<PlaceHolderType<T>>(placeholder_);
         *typed_ptr = value;
 
@@ -218,7 +207,7 @@ class Option {
             if (!allowed_values_.empty()) {
                 bool matched = false;
                 for (const auto &v : allowed_values_) {
-                    const auto &allowed_value = pre_std::get<T>(v);
+                    const auto &allowed_value = v.get<T>();
                     if (value == allowed_value) {
                         matched = true;
                         break;
