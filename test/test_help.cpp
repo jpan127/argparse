@@ -19,7 +19,7 @@ TEST_CASE("HelpMessage", "Parsing") {
             "path",
         };
 
-        p.add<std::string>({
+        p.add<std::string>(Option::Config{
             .name = "mode",
             .required = false,
         }, "a");
@@ -33,7 +33,7 @@ TEST_CASE("HelpMessage", "Parsing") {
             "path",
         };
 
-        p.add<std::string>({
+        p.add<std::string>(Option::Config{
             .name = "mode",
             .required = true,
         }, "a");
@@ -48,7 +48,7 @@ TEST_CASE("HelpMessage", "Parsing") {
             "-h",
         };
 
-        p.add<std::string>({
+        p.add<std::string>(Option::Config{
             .name = "mode",
             .required = false,
         }, "a");
@@ -63,7 +63,7 @@ TEST_CASE("HelpMessage", "Parsing") {
             "--help",
         };
 
-        p.add<std::string>({
+        p.add<std::string>(Option::Config{
             .name = "mode",
             .required = false,
         }, "a");

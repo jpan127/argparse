@@ -130,7 +130,7 @@ TEST_CASE("RemainingArguments", "Parsing") {
     }
 
     SECTION("3 options with {1, 2, 3} values respectively, only one is expected") {
-        p.add<std::string>({.letter = 'a'});
+        p.add<std::string>(Option::Config{.letter = 'a'});
 
         const auto &remaining_args = p.parse(argc, argv);
         REQUIRE(remaining_args.size() == 2);
@@ -175,7 +175,7 @@ TEST_CASE("Letter", "Parsing") {
     };
 
     SECTION("Only letter") {
-        const auto day = p.add<std::string>({
+        const auto day = p.add<std::string>(Option::Config{
             .letter = 'd',
             .required = true,
         });
@@ -186,7 +186,7 @@ TEST_CASE("Letter", "Parsing") {
     }
 
     SECTION("Name and letter, but use letter") {
-        const auto day = p.add<std::string>({
+        const auto day = p.add<std::string>(Option::Config{
             .name = "day",
             .letter = 'd',
             .required = true,
@@ -198,7 +198,7 @@ TEST_CASE("Letter", "Parsing") {
     }
 
     SECTION("Name and letter, but use name") {
-        const auto day = p.add<std::string>({
+        const auto day = p.add<std::string>(Option::Config{
             .name = "day",
             .letter = 'd',
             .required = true,
