@@ -3,9 +3,14 @@ clear
 
 set -e
 
+if [[ -z ${CXX+x} ]]; then
+    CXX="clang++"
+fi
+
 build_tests() {
     time                                    \
-    clang++ -std=c++14 test/*.cpp           \
+    $CXX -std=c++14 test/*.cpp              \
+        -stdlib=libc++                      \
         -Xclang -flto-visibility-public-std \
         -Wall                               \
         -Isrc                               \
@@ -13,14 +18,15 @@ build_tests() {
         -Imodules/test                      \
         -Imodules/optional                  \
         -Imodules/catch2                    \
-        -o tests.exe                        \
+        -o tests                            \
         >&2
     echo $?
 }
 
 build_samples() {
     time                                    \
-    clang++ -std=c++14 sample/*.cpp         \
+    $CXX -std=c++14 sample/*.cpp            \
+        -stdlib=libc++                      \
         -Xclang -flto-visibility-public-std \
         -Isrc                               \
         -Imodules/variant/include           \
@@ -32,7 +38,7 @@ build_samples() {
 }
 
 run_tests() {
-    ./test_runner.sh $1 >&2
+    bash ./test_runner.sh $1 >&2
     echo $?
 }
 

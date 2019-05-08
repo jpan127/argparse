@@ -29,7 +29,7 @@ class Parser {
     Parser(const std::string &name = "", const std::string &help = "")
         : name_(name), help_(help) {
         // Add a help option by default
-        add<bool>({
+        add<bool>(Option::Config{
             .name = "help",
             .letter = 'h',
             .help = "Show help message",
