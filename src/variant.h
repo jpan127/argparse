@@ -34,7 +34,7 @@ class Variant {
         kVariantsSize,
     };
 
-    using V = pre_std::variant<
+    using V = pstd::variant<
         std::string,
         uint64_t,
         int64_t,
@@ -42,7 +42,7 @@ class Variant {
         float,
         bool>;
 
-    static_assert(kVariantsSize == pre_std::variant_size_v<V>, "");
+    static_assert(kVariantsSize == pstd::variant_size_v<V>, "");
 
     template <typename T, typename X = std::enable_if_t<std::is_same<T, Variant>::value, void>>
     explicit Variant(T &&value) : value_(std::forward<T>(value)) {
@@ -80,27 +80,27 @@ class Variant {
         }
     };
     std::string string() const {
-        return pre_std::visit(Visitor{}, value_);
+        return pstd::visit(Visitor{}, value_);
     }
 
     template <typename T>
     T &get() {
-        return pre_std::get<T>(value_);
+        return pstd::get<T>(value_);
     }
 
     template <std::size_t Index>
     auto &get() {
-        return pre_std::get<Index>(value_);
+        return pstd::get<Index>(value_);
     }
 
     template <typename T>
     const T &get() const {
-        return pre_std::get<T>(value_);
+        return pstd::get<T>(value_);
     }
 
     template <std::size_t Index>
     const auto &get() const {
-        return pre_std::get<Index>(value_);
+        return pstd::get<Index>(value_);
     }
 
     struct hash {

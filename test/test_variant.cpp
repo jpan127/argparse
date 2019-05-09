@@ -5,7 +5,7 @@
 #include <string>
 
 TEST_CASE("", "") {
-    pre_std::variant<
+    pstd::variant<
         std::string,
         uint64_t,
         int64_t,
@@ -23,5 +23,5 @@ TEST_CASE("", "") {
         void operator()(bool &value){};
     };
 
-    pre_std::visit(Visitor{}, v);
+    pstd::visit(Visitor{}, v);
 }
