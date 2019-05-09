@@ -40,7 +40,7 @@ class Parser {
     }
 
     template <typename T>
-    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pre_std::optional<T> &default_value,
+    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pstd::optional<T> &default_value,
                                                      std::unordered_set<T> &&allowed_values) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
         return options_.add_multivalent<T>(
@@ -51,7 +51,7 @@ class Parser {
     }
 
     template <typename T>
-    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pre_std::optional<T> &default_value) {
+    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pstd::optional<T> &default_value) {
         return add_multivalent<T>(config, default_value, {});
     }
 
@@ -66,7 +66,7 @@ class Parser {
     }
 
     template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config, const pre_std::optional<T> &default_value,
+    ConstPlaceHolder<T> add(const Option::Config &config, const pstd::optional<T> &default_value,
                             std::unordered_set<T> &&allowed_values) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
         return options_.add<T>(
@@ -77,7 +77,7 @@ class Parser {
     }
 
     template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config, const pre_std::optional<T> &default_value) {
+    ConstPlaceHolder<T> add(const Option::Config &config, const pstd::optional<T> &default_value) {
         return add<T>(config, default_value, {});
     }
 
@@ -96,7 +96,7 @@ class Parser {
                             const std::string &help = "",
                             const char letter = Option::Config::kUnusedChar,
                             const bool required = false,
-                            const pre_std::optional<T> &default_value = T{},
+                            const pstd::optional<T> &default_value = T{},
                             std::unordered_set<T> &&allowed_values = {}) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
         const Option::Config config{
@@ -181,10 +181,10 @@ class Parser {
     std::unordered_set<std::string> existing_args_;
 
     /// Map of subparser name to subparser
-    pre_std::optional<std::unordered_map<std::string, Parser>> subparser_;
+    pstd::optional<std::unordered_map<std::string, Parser>> subparser_;
 
     /// Name of the subparser group
-    pre_std::optional<std::string> subparser_group_;
+    pstd::optional<std::string> subparser_group_;
 
     /// Chosen subparser from the subparser group
     std::string selected_subparser_;

@@ -30,7 +30,7 @@ class Option {
 
     /// Single Constructor
     template <typename T>
-    Option(const PlaceHolder<T> &placeholder, Config config, const pre_std::optional<T> &default_value,
+    Option(const PlaceHolder<T> &placeholder, Config config, const pstd::optional<T> &default_value,
            std::unordered_set<T> &&allowed_values)
         : config_(std::move(config)),
           type_(detail::deduce_variant<T>()),
@@ -49,7 +49,7 @@ class Option {
 
     /// Multivalent Constructor
     template <typename T>
-    Option(const PlaceHolder<std::vector<T>> &placeholder, Config config, const pre_std::optional<T> &default_value,
+    Option(const PlaceHolder<std::vector<T>> &placeholder, Config config, const pstd::optional<T> &default_value,
            std::unordered_set<T> &&allowed_values)
         : config_(std::move(config)),
           type_(detail::deduce_variant<T>()),
@@ -150,7 +150,7 @@ class Option {
   private:
     const Config config_;
     const Variant::Type type_;
-    const pre_std::optional<Variant> default_value_;
+    const pstd::optional<Variant> default_value_;
     const std::unordered_set<Variant, Variant::hash> allowed_values_;
     const bool multivalent_ = false;
 
@@ -159,7 +159,7 @@ class Option {
 
     /// Determines the value of [default_value_]
     template <typename T>
-    pre_std::optional<Variant> determine_default_value(const pre_std::optional<T> &default_value) {
+    pstd::optional<Variant> determine_default_value(const pstd::optional<T> &default_value) {
         if (default_value.has_value()) {
             return detail::make_variant(default_value.value());
         }

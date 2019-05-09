@@ -7,10 +7,16 @@ if [[ -z ${CXX+x} ]]; then
     CXX="clang++"
 fi
 
+if [[ "$OSTYPE" == "msys" ]]; then
+    STDLIB=""
+else
+    STDLIB="-stdlib=libc++"
+fi
+
 build_tests() {
     time                                    \
     $CXX -std=c++14 test/*.cpp              \
-        -stdlib=libc++                      \
+        $STDLIB                             \
         -Xclang -flto-visibility-public-std \
         -Wall                               \
         -Isrc                               \
@@ -26,7 +32,7 @@ build_tests() {
 build_samples() {
     time                                    \
     $CXX -std=c++14 sample/*.cpp            \
-        -stdlib=libc++                      \
+        $STDLIB                             \
         -Xclang -flto-visibility-public-std \
         -Isrc                               \
         -Imodules/variant/include           \
