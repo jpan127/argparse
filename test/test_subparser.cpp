@@ -30,7 +30,7 @@ TEST_CASE("Subparser", "Subparsing") {
             "60",
         };
 
-        const auto &remaining_args = p.parse(argc, argv);
+        p.parse(argc, argv);
         REQUIRE(p.subparser() == "play");
 
         REQUIRE(song_name->has_value());
@@ -38,10 +38,6 @@ TEST_CASE("Subparser", "Subparsing") {
         REQUIRE(!seconds->has_value());
 
         REQUIRE(song_name->value() == "Old Town Road");
-
-        REQUIRE(remaining_args.size() == 2);
-        REQUIRE(remaining_args.exists("delay"));
-        REQUIRE(remaining_args.exists("seconds"));
     }
 
     SECTION("stop") {
@@ -57,7 +53,7 @@ TEST_CASE("Subparser", "Subparsing") {
             "60",
         };
 
-        const auto &remaining_args = p.parse(argc, argv);
+        p.parse(argc, argv);
         REQUIRE(p.subparser() == "stop");
 
         REQUIRE(!song_name->has_value());
@@ -65,10 +61,6 @@ TEST_CASE("Subparser", "Subparsing") {
         REQUIRE(!seconds->has_value());
 
         REQUIRE(delay->value() == 50);
-
-        REQUIRE(remaining_args.size() == 2);
-        REQUIRE(remaining_args.exists("song_name"));
-        REQUIRE(remaining_args.exists("seconds"));
     }
 
     SECTION("pause") {
@@ -84,7 +76,7 @@ TEST_CASE("Subparser", "Subparsing") {
             "60",
         };
 
-        const auto &remaining_args = p.parse(argc, argv);
+        p.parse(argc, argv);
         REQUIRE(p.subparser() == "pause");
 
         REQUIRE(!song_name->has_value());
@@ -92,9 +84,5 @@ TEST_CASE("Subparser", "Subparsing") {
         REQUIRE(seconds->has_value());
 
         REQUIRE(seconds->value() == 60);
-
-        REQUIRE(remaining_args.size() == 2);
-        REQUIRE(remaining_args.exists("song_name"));
-        REQUIRE(remaining_args.exists("delay"));
     }
 }

@@ -1,14 +1,13 @@
 #pragma once
 
 #include <cassert>
+#include <cstdio>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <string>
 #include <type_traits>
 #include <unordered_set>
-
-#include <stdio.h>
 
 #include "convert.h"
 #include "options.h"
@@ -26,8 +25,8 @@ class Parser {
         std::function<void(const std::string &, const std::vector<std::string> &)> invalid;
     };
 
-    Parser(const std::string &name = "", const std::string &help = "")
-        : name_(name), help_(help) {
+    explicit Parser(std::string name = "", std::string help = "")
+        : name_(std::move(name)), help_(std::move(help)) {
         // Add a help option by default
         add<bool>(Option::Config{
             .name = "help",
@@ -141,7 +140,7 @@ class Parser {
 
     /// Parse arguments
     /// \return Remaining, non-parsed arguments
-    const Args &parse(const int argc, const char **argv) {
+    const std::vector<std::string> &parse(const int argc, const char **argv) {
         assert(argv);
         return parse(argc, argv, true);
     }
@@ -160,7 +159,7 @@ class Parser {
         subparser_.emplace();
 
         for (auto &&av : allowed_values) {
-            subparser_->insert({av, Parser(std::move(av))});
+            subparser_->insert({av, Parser(av)});
         }
 
         return subparser_.value();
@@ -176,7 +175,7 @@ class Parser {
 
     Callbacks cbs_;
     Options options_;
-    Args remaining_args_;
+    std::vector<std::string> remaining_args_;
     detail::Parser parser_;
     std::unordered_set<std::string> existing_args_;
 
@@ -192,7 +191,7 @@ class Parser {
     /// Parse arguments
     /// \param pop_first To remove the first argument or not
     /// \return          Remaining, non-parsed arguments
-    const Args &parse(const int argc, const char **argv, const bool pop_first) {
+    const std::vector<std::string> &parse(const int argc, const char **argv, const bool pop_first) {
         // If pop first, decrement size, increment pointer
         const int new_argc = (pop_first) ? (argc - 1) : (argc);
         const char **new_argv = (pop_first) ? (argv + 1) : (argv);
@@ -254,54 +253,66 @@ class Parser {
                 const auto &name = pair.first;
                 auto &values = pair.second;
                 const auto name_string = make_name_string(name);
-
                 auto option = options_.get(name);
-                if (option) {
-                    if (option->type() == Variant::Type::kBool) {
-                        if (!option->set("true")) {
-                            if (cbs_.invalid) {
-                                cbs_.invalid(name_string, {"true"});
-                            }
-                        }
-                        existing_args_.insert(option->name());
-                    } else {
-                        if (values.empty()) {
-                            if (cbs_.missing) {
-                                cbs_.missing(name_string);
-                            }
-                        } else {
-                            if (option->multivalent()) {
-                                // Multivalent, set all values
-                                if (!option->set(values)) {
-                                    if (cbs_.invalid) {
-                                        cbs_.invalid(name_string, values);
-                                    }
-                                }
-                            } else {
-                                // Not multivalent, should not have more than 1 value
-                                if (values.size() > 1) {
-                                    if (cbs_.invalid) {
-                                        cbs_.invalid(name_string, values);
-                                    }
-                                } else {
-                                    // Not multivalent, only one value
-                                    if (!option->set(values[0])) {
-                                        if (cbs_.invalid) {
-                                            cbs_.invalid(name_string, {values[0]});
-                                        }
-                                    }
-                                }
-                            }
 
-                            existing_args_.insert(option->name());
-                        }
-                    }
-                } else {
+                if (name_string == detail::Parser::kRemainingArgsKey) {
+                    remaining_args_ = std::move(values);
+                    continue;
+                }
+
+                // Did not find option
+                if (!option) {
                     if (cbs_.invalid) {
                         cbs_.invalid(name_string, values);
                     }
 
-                    remaining_args_.create(name, std::move(values));
+                    continue;
+                }
+
+                // Boolean parameter just checks if the flag exists or not
+                if (option->type() == Variant::Type::kBool) {
+                    if (!option->set("true")) {
+                        if (cbs_.invalid) {
+                            cbs_.invalid(name_string, {"true"});
+                        }
+                    }
+                    existing_args_.insert(option->name());
+                    continue;
+                }
+
+                // No values for the option
+                if (values.empty()) {
+                    if (cbs_.missing) {
+                        cbs_.missing(name_string);
+                    }
+                    continue;
+                }
+
+                // This option has a value, add it to set of args
+                existing_args_.insert(option->name());
+
+                // Multivalent, set all values
+                if (option->multivalent()) {
+                    if (!option->set(values)) {
+                        if (cbs_.invalid) {
+                            cbs_.invalid(name_string, values);
+                        }
+                    }
+                    continue;
+                }
+
+                // Not multivalent, should not have more than 1 value
+                if (values.size() > 1) {
+                    if (cbs_.invalid) {
+                        cbs_.invalid(name_string, values);
+                    }
+                } else {
+                    // Not multivalent, only one value
+                    if (!option->set(values[0])) {
+                        if (cbs_.invalid) {
+                            cbs_.invalid(name_string, {values[0]});
+                        }
+                    }
                 }
             }
         };

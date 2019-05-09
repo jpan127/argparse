@@ -15,21 +15,31 @@ namespace detail {
 
 class Parser {
   public:
+    static constexpr const char * const kRemainingArgsKey = "_remaining";
+
     Args parse(const int argc, const char **argv) {
         Args args{};
         std::string last_option;
+        bool is_splitted_args = false;
 
         for (std::size_t ii = 0; ii < static_cast<std::size_t>(argc); ii++) {
-            parse_arg(args, last_option, argv[ii]);
+            parse_arg(args, last_option, argv[ii], is_splitted_args);
         }
 
         return args;
     }
 
   private:
-    void parse_arg(Args &args, std::string &last_option, std::string s) {
-        // If this is an option, set it as the option for future token
-        if (is_option(s)) {
+    void parse_arg(Args &args, std::string &last_option, std::string &&s, bool &is_splitted_args) {
+        constexpr char kSplitter[] = "--";
+
+        if (is_splitted_args) {
+            // Rest of arguments go under this category
+            args.insert(kRemainingArgsKey, std::move(s));
+        } else if (s == kSplitter) {
+            is_splitted_args = true;
+        } else if (is_option(s)) {
+            // If this is an option, set it as the option for future token
             strip_prefix(s);
             last_option = std::move(s);
             if (last_option.length() == 1) {

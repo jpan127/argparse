@@ -95,11 +95,12 @@ TEST_CASE("BasicArgument", "Parsing") {
 
 TEST_CASE("RemainingArguments", "Parsing") {
     Parser p("Sample Program", "Testing...");
-    constexpr int argc = 10;
+    constexpr int argc = 11;
     const char *argv[argc] = {
         "path",
         "--a",
         "value1",
+        "--",
         "--b",
         "value1",
         "value2",
@@ -109,42 +110,18 @@ TEST_CASE("RemainingArguments", "Parsing") {
         "value3",
     };
 
-    SECTION("3 options with {1, 2, 3} values respectively, none are expected") {
-        const auto &remaining_args = p.parse(argc, argv);
-        REQUIRE(remaining_args.size() == 3);
-        REQUIRE(remaining_args.exists('a'));
-        REQUIRE(remaining_args.exists('b'));
-        REQUIRE(remaining_args.exists('c'));
-        REQUIRE(remaining_args.get('a').size() == 1);
-        REQUIRE(remaining_args.get('b').size() == 2);
-        REQUIRE(remaining_args.get('c').size() == 3);
-        const auto &a = remaining_args.get('a');
-        const auto &b = remaining_args.get('b');
-        const auto &c = remaining_args.get('c');
-        REQUIRE(a[0] == "value1");
-        REQUIRE(b[0] == "value1");
-        REQUIRE(b[1] == "value2");
-        REQUIRE(c[0] == "value1");
-        REQUIRE(c[1] == "value2");
-        REQUIRE(c[2] == "value3");
-    }
-
     SECTION("3 options with {1, 2, 3} values respectively, only one is expected") {
         p.add<std::string>(Option::Config{.letter = 'a'});
 
         const auto &remaining_args = p.parse(argc, argv);
-        REQUIRE(remaining_args.size() == 2);
-        REQUIRE(remaining_args.exists('b'));
-        REQUIRE(remaining_args.exists('c'));
-        REQUIRE(remaining_args.get('b').size() == 2);
-        REQUIRE(remaining_args.get('c').size() == 3);
-        const auto &b = remaining_args.get('b');
-        const auto &c = remaining_args.get('c');
-        REQUIRE(b[0] == "value1");
-        REQUIRE(b[1] == "value2");
-        REQUIRE(c[0] == "value1");
-        REQUIRE(c[1] == "value2");
-        REQUIRE(c[2] == "value3");
+        REQUIRE(remaining_args.size() == 7);
+        REQUIRE(remaining_args[0] == "--b");
+        REQUIRE(remaining_args[1] == "value1");
+        REQUIRE(remaining_args[2] == "value2");
+        REQUIRE(remaining_args[3] == "--c");
+        REQUIRE(remaining_args[4] == "value1");
+        REQUIRE(remaining_args[5] == "value2");
+        REQUIRE(remaining_args[6] == "value3");
     }
 }
 
