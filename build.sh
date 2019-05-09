@@ -9,15 +9,17 @@ fi
 
 if [[ "$OSTYPE" == "msys" ]]; then
     STDLIB=""
-else
+    EXTRA_FLAGS="-Xclang -flto-visibility-public-std"
+elif [[ "$OSTYPE" == "linux-gnu" ]]; then
     STDLIB="-stdlib=libc++"
+    EXTRA_FLAGS=""
 fi
 
 build_tests() {
     time                                    \
     $CXX -std=c++14 test/*.cpp              \
         $STDLIB                             \
-        -Xclang -flto-visibility-public-std \
+        $EXTRA_FLAGS                        \
         -Wall                               \
         -Isrc                               \
         -Imodules/variant/include           \
@@ -33,7 +35,7 @@ build_samples() {
     time                                    \
     $CXX -std=c++14 sample/*.cpp            \
         $STDLIB                             \
-        -Xclang -flto-visibility-public-std \
+        $EXTRA_FLAGS                        \
         -Isrc                               \
         -Imodules/variant/include           \
         -Imodules/optional                  \
@@ -62,3 +64,6 @@ if [[ $return_c != "0" ]]; then
     exit 1
 fi
 echo "Tests successful"
+
+bash ./tidy.sh
+echo "All tidied!"
