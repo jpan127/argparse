@@ -11,4 +11,4 @@ A C++14 compliant command line parser.
 
 master: [![Build Status](https://travis-ci.org/jpan127/argparse.svg?branch=master)](https://travis-ci.org/jpan127/argparse)
 
-fature: [![Build Status](https://travis-ci.org/jpan127/argparse.svg?branch=feature)](https://travis-ci.org/jpan127/argparse)
+feature: [![Build Status](https://travis-ci.org/jpan127/argparse.svg?branch=feature)](https://travis-ci.org/jpan127/argparse)

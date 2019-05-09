@@ -13,6 +13,7 @@ addons:
       - clang++-8
       - libc++-8-dev
       - libc++abi-8-dev
+      - clang-tidy-8
 
 before_install:
   - chmod +x build.sh
@@ -21,4 +22,5 @@ before_install:
 script:
   - export CXX=/usr/bin/clang++-8
   - $CXX --version
+  - clang-tidy-8 --version
   - bash ./build.sh

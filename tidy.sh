@@ -1,30 +1,43 @@
 #!/bin/sh
-clear
-
 SUPRESSED_CHECKS="\
--hicpp-avoid-c-arrays,\
--modernize-avoid-c-arrays,\
--hicpp-no-array-decay,\
 -cppcoreguidelines-avoid-c-arrays,\
 -cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
--fuchsia-default-arguments,\
--llvm-header-guard,\
--fuchsia-overloaded-operator,\
--misc-definitions-in-headers,\
--google-build-using-namespace,\
--cppcoreguidelines-pro-bounds-pointer-arithmetic,\
 -cppcoreguidelines-pro-bounds-constant-array-index,\
--readability-named-parameter,\
--google-runtime-references\
+-cppcoreguidelines-pro-bounds-pointer-arithmetic,\
+-cppcoreguidelines-pro-type-vararg,\
+-fuchsia-default-arguments,\
+-fuchsia-overloaded-operator,\
+-google-build-using-namespace,\
+-google-runtime-references,\
+-hicpp-avoid-c-arrays,\
+-hicpp-no-array-decay,\
+-hicpp-vararg,\
+-llvm-header-guard,\
+-misc-definitions-in-headers,\
+-modernize-avoid-c-arrays,\
+-readability-named-parameter\
 "
 
-clang-tidy.exe                 \
-  -checks=*,$SUPRESSED_CHECKS  \
-  -header-filter=src/          \
-  test/test_help.cpp           \
-  --                           \
-  -std=c++14                   \
-  -Imodules/variant/include    \
-  -Imodules/optional           \
-  -Isrc                        \
-  -Imodules/catch2
+if [[ "$OSTYPE" == "msys" ]]; then
+    CLANG_TIDY_PATH="clang-tidy.exe"
+    STDLIB=""
+    EXTRA_FLAGS="-Xclang -flto-visibility-public-std"
+elif [[ "$OSTYPE" == "linux-gnu" ]]; then
+    STDLIB="-stdlib=libc++"
+    CLANG_TIDY_PATH="clang-tidy-8"
+    EXTRA_FLAGS=""
+fi
+
+$CLANG_TIDY_PATH                              \
+    -checks=*,$SUPRESSED_CHECKS               \
+    --warnings-as-errors=*,$SUPRESSED_CHECKS  \
+    -header-filter=src/                       \
+    test/test_help.cpp                        \
+    --                                        \
+    -std=c++14                                \
+    $STDLIB                                   \
+    $EXTRA_FLAGS                              \
+    -Imodules/variant/include                 \
+    -Imodules/optional                        \
+    -Isrc                                     \
+    -Imodules/catch2
