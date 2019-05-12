@@ -28,112 +28,69 @@ class Parser {
     explicit Parser(std::string name = "", std::string help = "")
         : name_(std::move(name)), help_(std::move(help)) {
         // Add a help option by default
-        add<bool>(Option::Config{
+        add<bool>({
             .name = "help",
             .letter = 'h',
             .help = "Show help message",
             .required = false,
-        }, false);
+            .default_value = false,
+        });
 
         set_default_callbacks();
     }
 
     template <typename T>
-    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pstd::optional<T> &default_value,
-                                                     std::unordered_set<T> &&allowed_values) {
+    ConstPlaceHolder<std::vector<T>> add_multivalent(Option::Config<T> config) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
-        return options_.add_multivalent<T>(
-            config,
-            default_value,
-            std::forward<std::unordered_set<T>>(allowed_values)
-        );
+        return options_.add_multivalent<T>(std::move(config));
     }
 
     template <typename T>
-    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pstd::optional<T> &default_value) {
-        return add_multivalent<T>(config, default_value, {});
-    }
-
-    template <typename T>
-    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, std::unordered_set<T> &&allowed_values) {
-        return add_multivalent<T>(config, {}, std::forward<std::unordered_set<T>>(allowed_values));
-    }
-
-    template <typename T>
-    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config) {
-        return add_multivalent<T>(config, {}, {});
-    }
-
-    template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config, const pstd::optional<T> &default_value,
-                            std::unordered_set<T> &&allowed_values) {
+    ConstPlaceHolder<T> add(Option::Config<T> config) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
-        return options_.add<T>(
-            config,
-            default_value,
-            std::forward<std::unordered_set<T>>(allowed_values)
-        );
+        return options_.add<T>(std::move(config));
     }
 
+    /// Add overload to specify individual arguments
+    /// Non const inputs are moved
     template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config, const pstd::optional<T> &default_value) {
-        return add<T>(config, default_value, {});
-    }
-
-    template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config, std::unordered_set<T> &&allowed_values) {
-        return add<T>(config, {}, std::forward<std::unordered_set<T>>(allowed_values));
-    }
-
-    template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config) {
-        return add<T>(config, {}, {});
-    }
-
-    template <typename T>
-    ConstPlaceHolder<T> add(const std::string &name,
-                            const std::string &help = "",
-                            const char letter = Option::Config::kUnusedChar,
+    ConstPlaceHolder<T> add(std::string name, // NOLINT(performance-unnecessary-value-param)
+                            std::string help, // NOLINT(performance-unnecessary-value-param)
+                            const char letter = Option::Config<T>::kUnusedChar,
                             const bool required = false,
-                            const pstd::optional<T> &default_value = T{},
-                            std::unordered_set<T> &&allowed_values = {}) {
+                            pstd::optional<T> default_value = T{},
+                            std::unordered_set<T> allowed_values = {}) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
-        const Option::Config config{
-            .name = name,
-            .help = help,
+        return options_.add<T>({
+            .name = std::move(name),
+            .help = std::move(help),
             .letter = letter,
             .required = required,
-        };
-        return options_.add<T>(
-            config,
-            default_value,
-            std::forward<std::unordered_set<T>>(allowed_values)
-        );
+            .default_value = std::move(default_value),
+            .allowed_values = std::move(allowed_values)
+        });
     }
 
     template <typename T, int32_t Position>
-    ConstPlaceHolder<T> add_leading_positional(Option::Config config) {
+    ConstPlaceHolder<T> add_leading_positional(Option::Config<T> config) {
         static_assert(Position > 0, "Position is 1-indexed");
-
-        // All leading positional arguments are required, otherwise the positions invalidates others
-        config.required = true;
-        config.positional = true;
-        auto placeholder = options_.add<T>(
-            config,
-            {},
-            {}
-        );
 
         // Shift position to the left because the path argument will be stripped
         constexpr int32_t kPositionMinusOne = Position - 1;
-
         if (position_map_.find(kPositionMinusOne) != position_map_.end()) {
             std::cout << "Position " << Position
                       << " has already been taken, can not have multiple options in the same position\n";
             return nullptr;
         }
 
+        // Save position
         position_map_[kPositionMinusOne] = config.name;
+
+        // All leading positional arguments are required, otherwise the positions invalidates others
+        config.required = true;
+        config.positional = true;
+        auto placeholder = options_.add<T>(std::move(config));
+
         return placeholder;
     }
 
@@ -330,7 +287,6 @@ class Parser {
         };
 
         const auto &positional_args = parser_.positional_args();
-        std::cout << positional_args.size() << std::endl;
         for (const auto &pair : position_map_) {
             const auto &position = pair.first;
             const auto &name = pair.second;

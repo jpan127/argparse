@@ -136,7 +136,7 @@ Variant make_variant(const T &default_value) {
 }
 
 template <typename T>
-std::unordered_set<Variant, Variant::hash> make_variants(std::unordered_set<T> &&in) {
+std::unordered_set<Variant, Variant::hash> make_variants(const std::unordered_set<T> &in) {
     std::unordered_set<Variant, Variant::hash> out;
     for (auto &&value : in) {
         out.insert(make_variant(value));

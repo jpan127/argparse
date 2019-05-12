@@ -15,27 +15,27 @@ class Options {
 
   public:
     template <typename T>
-    ConstPlaceHolder<T> add(const Option::Config &config, const pstd::optional<T> &default_value,
-                            std::unordered_set<T> &&allowed_values) {
+    ConstPlaceHolder<T> add(Option::Config<T> &&config) {
+        // Need to copy name as it is used on the LHS by operator[], but is moved on the RHS
+        // Order of evaluation seems to be undefined
+        const auto name = config.name;
         auto placeholder = std::make_shared<PlaceHolderType<T>>();
-        options_[config.name] = std::make_shared<Option>(
+        options_[name] = std::make_shared<Option>(
             placeholder,
-            config,
-            default_value,
-            std::forward<std::unordered_set<T>>(allowed_values)
+            std::forward<Option::Config<T>>(config)
         );
         return placeholder;
     }
 
     template <typename T>
-    ConstPlaceHolder<std::vector<T>> add_multivalent(const Option::Config &config, const pstd::optional<T> &default_value,
-                                                     std::unordered_set<T> &&allowed_values) {
+    ConstPlaceHolder<std::vector<T>> add_multivalent(Option::Config<T> &&config) {
+        // Need to copy name as it is used on the LHS by operator[], but is moved on the RHS
+        // Order of evaluation seems to be undefined
+        const auto name = config.name;
         auto placeholder = std::make_shared<PlaceHolderType<std::vector<T>>>();
-        options_[config.name] = std::make_shared<Option>(
+        options_[name] = std::make_shared<Option>(
             placeholder,
-            config,
-            default_value,
-            std::forward<std::unordered_set<T>>(allowed_values)
+            std::forward<Option::Config<T>>(config)
         );
         return placeholder;
     }

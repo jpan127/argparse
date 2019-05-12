@@ -8,9 +8,10 @@ TEST_CASE("DefaultValue", "Parsing") {
     Parser p;
     replace_exit_cb(p);
     const auto &mode = p.add<std::string>({
+        .default_value = "walk",
         .name = "mode",
         .required = true,
-    }, "walk");
+    });
 
     SECTION("NoInput") {
         constexpr int argc = 2;

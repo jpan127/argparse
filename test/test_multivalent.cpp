@@ -44,7 +44,8 @@ TEST_CASE("MultivalentOption", "Parsing") {
         const auto &mode = p.add_multivalent<std::string>({
             .name = "mode",
             .required = true,
-        }, "bounce");
+            .default_value = "bounce",
+        });
         test(mode, p);
     }
 
@@ -54,7 +55,8 @@ TEST_CASE("MultivalentOption", "Parsing") {
         const auto &mode = p.add_multivalent<std::string>({
             .name = "mode",
             .required = true,
-        }, {"walk", "jog", "skip", "fly"});
+            .allowed_values = {"walk", "jog", "skip", "fly"},
+        });
         test(mode, p);
     }
 }
