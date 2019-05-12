@@ -159,9 +159,7 @@ class Parser {
             << "Options     : " << std::endl;
         options_.display();
 
-        if (cbs_.help) {
-            cbs_.help();
-        }
+        cbs_.help();
     }
 
     /// Parse arguments
@@ -175,10 +173,8 @@ class Parser {
                                                            std::unordered_set<std::string> &&allowed_values) {
         if (subparser_.has_value()) {
             std::cout << "Can only register one subparser per parser" << std::endl;
-            if (cbs_.exit) {
-                cbs_.exit();
-                return subparser_.value();
-            }
+            cbs_.exit();
+            return subparser_.value();
         }
 
         subparser_group_ = std::move(group);
@@ -228,9 +224,7 @@ class Parser {
         if (subparser_.has_value()) {
             // Check for subparser option, should have at least one argument
             if (new_argc <= 0) {
-                if (cbs_.missing) {
-                    cbs_.missing(subparser_group_.value());
-                }
+                cbs_.missing(subparser_group_.value());
                 return remaining_args_;
             }
 
@@ -238,10 +232,8 @@ class Parser {
             selected_subparser_ = new_argv[0];
             const auto iterator = subparser_->find(selected_subparser_);
             if (iterator == subparser_->end()) {
-                if (cbs_.invalid) {
-                    cbs_.invalid(subparser_group_.value(), {selected_subparser_});
-                    return remaining_args_;
-                }
+                cbs_.invalid(subparser_group_.value(), {selected_subparser_});
+                return remaining_args_;
             }
 
             // Let the subparser do the remainder of the parsing
@@ -290,10 +282,7 @@ class Parser {
                 // Did not find option
                 auto option = options_.get(name);
                 if (!option) {
-                    if (cbs_.invalid) {
-                        cbs_.invalid(name_string, values);
-                    }
-
+                    cbs_.invalid(name_string, values);
                     continue;
                 }
 
@@ -305,9 +294,7 @@ class Parser {
                 // Boolean parameter just checks if the flag exists or not
                 if (option->type() == Variant::Type::kBool) {
                     if (!option->set("true")) {
-                        if (cbs_.invalid) {
-                            cbs_.invalid(name_string, {"true"});
-                        }
+                        cbs_.invalid(name_string, {"true"});
                     }
                     existing_args_.insert(option->name());
                     continue;
@@ -315,9 +302,7 @@ class Parser {
 
                 // No values for the option
                 if (values.empty()) {
-                    if (cbs_.missing) {
-                        cbs_.missing(name_string);
-                    }
+                    cbs_.missing(name_string);
                     continue;
                 }
 
@@ -327,24 +312,18 @@ class Parser {
                 // Multivalent, set all values
                 if (option->multivalent()) {
                     if (!option->set(values)) {
-                        if (cbs_.invalid) {
-                            cbs_.invalid(name_string, values);
-                        }
+                        cbs_.invalid(name_string, values);
                     }
                     continue;
                 }
 
                 // Not multivalent, should not have more than 1 value
                 if (values.size() > 1) {
-                    if (cbs_.invalid) {
-                        cbs_.invalid(name_string, values);
-                    }
+                    cbs_.invalid(name_string, values);
                 } else {
                     // Not multivalent, only one value
                     if (!option->set(values[0])) {
-                        if (cbs_.invalid) {
-                            cbs_.invalid(name_string, {values[0]});
-                        }
+                        cbs_.invalid(name_string, {values[0]});
                     }
                 }
             }
@@ -370,17 +349,13 @@ class Parser {
                     const auto &value = positional_args[position];
                     std::cout << "Setting " << name << " to " << value << std::endl;
                     if (!option->set(value)) {
-                        if (cbs_.invalid) {
-                            cbs_.invalid(name, {value});
-                        }
+                        cbs_.invalid(name, {value});
                     }
                 } else {
                     std::cout
                         << "Expected positional argument [" << name << "] at "
                         << position << " position" << std::endl;
-                    if (cbs_.exit) {
-                        cbs_.exit();
-                    }
+                    cbs_.exit();
                 }
             } else {
                 // Not supporting trailing positional args yet
@@ -397,9 +372,7 @@ class Parser {
             const auto &name = pair.first;
             const auto option = pair.second;
             if (option->required() && existing_args_.find(name) == existing_args_.end()) {
-                if (cbs_.missing) {
-                    cbs_.missing(std::string(name));
-                }
+                cbs_.missing(std::string(name));
                 met = false;
             }
         }
@@ -409,6 +382,7 @@ class Parser {
     /// Set the default callbacks into [cbs_]
     void set_default_callbacks() {
         cbs_.exit = [] { throw std::runtime_error("Parsing failed"); };
+        cbs_.help = [] { };
         cbs_.missing = [](const auto &s) {
             std::cout << "Missing required argument : " << s << std::endl;
         };
