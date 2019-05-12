@@ -8,9 +8,10 @@ TEST_CASE("AllowedValues", "Parsing") {
     Parser p;
     replace_exit_cb(p);
     const auto &mode = p.add<std::string>({
+        .allowed_values = {"walk", "run", "jog", "skip"},
         .name = "mode",
         .required = true,
-    }, {"walk", "run", "jog", "skip"});
+    });
 
     constexpr int argc = 3;
 

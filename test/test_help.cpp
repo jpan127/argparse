@@ -19,10 +19,11 @@ TEST_CASE("HelpMessage", "Parsing") {
             "path",
         };
 
-        p.add<std::string>(Option::Config{
+        p.add<std::string>({
+            .default_value = "a",
             .name = "mode",
             .required = false,
-        }, "a");
+        });
         p.parse(argc, argv);
         REQUIRE(num_times_help_called == 0);
     }
@@ -33,10 +34,11 @@ TEST_CASE("HelpMessage", "Parsing") {
             "path",
         };
 
-        p.add<std::string>(Option::Config{
+        p.add<std::string>({
+            .default_value = "a",
             .name = "mode",
             .required = true,
-        }, "a");
+        });
         p.parse(argc, argv);
         REQUIRE(num_times_help_called == 1);
     }
@@ -48,10 +50,11 @@ TEST_CASE("HelpMessage", "Parsing") {
             "-h",
         };
 
-        p.add<std::string>(Option::Config{
+        p.add<std::string>({
+            .default_value = "a",
             .name = "mode",
             .required = false,
-        }, "a");
+        });
         p.parse(argc, argv);
         REQUIRE(num_times_help_called == 1);
     }
@@ -63,10 +66,11 @@ TEST_CASE("HelpMessage", "Parsing") {
             "--help",
         };
 
-        p.add<std::string>(Option::Config{
+        p.add<std::string>({
+            .default_value = "a",
             .name = "mode",
             .required = false,
-        }, "a");
+        });
         p.parse(argc, argv);
         REQUIRE(num_times_help_called == 1);
     }
