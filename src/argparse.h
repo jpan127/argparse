@@ -111,6 +111,32 @@ class Parser {
         );
     }
 
+    template <typename T, int32_t Position>
+    ConstPlaceHolder<T> add_leading_positional(Option::Config config) {
+        static_assert(Position > 0, "Position is 1-indexed");
+
+        // All leading positional arguments are required, otherwise the positions invalidates others
+        config.required = true;
+        config.positional = true;
+        auto placeholder = options_.add<T>(
+            config,
+            {},
+            {}
+        );
+
+        // Shift position to the left because the path argument will be stripped
+        constexpr int32_t kPositionMinusOne = Position - 1;
+
+        if (position_map_.find(kPositionMinusOne) != position_map_.end()) {
+            std::cout << "Position " << Position
+                      << " has already been taken, can not have multiple options in the same position\n";
+            return nullptr;
+        }
+
+        position_map_[kPositionMinusOne] = config.name;
+        return placeholder;
+    }
+
     /// For each valid callback, sets it
     /// Ignores null callback objects so existing callback will not be overwritten
     void set_callbacks(Callbacks &&cbs) {
@@ -178,6 +204,8 @@ class Parser {
     std::vector<std::string> remaining_args_;
     detail::Parser parser_;
     std::unordered_set<std::string> existing_args_;
+
+    std::unordered_map<int32_t, std::string> position_map_;
 
     /// Map of subparser name to subparser
     pstd::optional<std::unordered_map<std::string, Parser>> subparser_;
@@ -253,7 +281,6 @@ class Parser {
                 const auto &name = pair.first;
                 auto &values = pair.second;
                 const auto name_string = make_name_string(name);
-                auto option = options_.get(name);
 
                 if (name_string == detail::Parser::kRemainingArgsKey) {
                     remaining_args_ = std::move(values);
@@ -261,11 +288,17 @@ class Parser {
                 }
 
                 // Did not find option
+                auto option = options_.get(name);
                 if (!option) {
                     if (cbs_.invalid) {
                         cbs_.invalid(name_string, values);
                     }
 
+                    continue;
+                }
+
+                // Don't check for positional arguments here
+                if (option->positional()) {
                     continue;
                 }
 
@@ -316,6 +349,43 @@ class Parser {
                 }
             }
         };
+
+        const auto &positional_args = parser_.positional_args();
+        std::cout << positional_args.size() << std::endl;
+        for (const auto &pair : position_map_) {
+            const auto &position = pair.first;
+            const auto &name = pair.second;
+            // Positive position, leading option
+            if (position >= 0) {
+                // Check if any value exists over there
+                if (position < positional_args.size()) {
+                    // Option should exist, the name is the same name that was used to add the option
+                    auto option = options_.get(name);
+                    assert(option);
+
+                    // Mark as existing
+                    existing_args_.insert(name);
+
+                    // Set the value
+                    const auto &value = positional_args[position];
+                    std::cout << "Setting " << name << " to " << value << std::endl;
+                    if (!option->set(value)) {
+                        if (cbs_.invalid) {
+                            cbs_.invalid(name, {value});
+                        }
+                    }
+                } else {
+                    std::cout
+                        << "Expected positional argument [" << name << "] at "
+                        << position << " position" << std::endl;
+                    if (cbs_.exit) {
+                        cbs_.exit();
+                    }
+                }
+            } else {
+                // Not supporting trailing positional args yet
+            }
+        }
 
         check(args.letter_map());
         check(args.string_map());

@@ -29,7 +29,13 @@ class Parser {
         return args;
     }
 
+    const std::vector<std::string> &positional_args() const {
+        return positional_args_;
+    }
+
   private:
+    std::vector<std::string> positional_args_;
+
     void parse_arg(Args &args, std::string &last_option, std::string &&s, bool &is_splitted_args) {
         constexpr char kSplitter[] = "--";
 
@@ -49,7 +55,9 @@ class Parser {
             }
         } else {
             // No last option means an option has not been found yet
+            // It is assumed to be a positional argument
             if (last_option.empty()) {
+                positional_args_.push_back(std::move(s));
                 return;
             }
 
