@@ -22,10 +22,11 @@ class Option {
     /// Configuration of the option
     struct Config {
         static constexpr char kUnusedChar = 0;
-        std::string name{};
-        std::string help{};
-        bool required = false;
-        char letter = kUnusedChar;
+        std::string name{};        /// Name of the option, multicharacter string
+        std::string help{};        /// Optional help message
+        bool positional = false;   /// Whether this option is position based or name based
+        bool required = false;     /// Should enforce requirement of the option
+        char letter = kUnusedChar; /// Character of the option, if != kUnusedChar
     };
 
     /// Single Constructor
@@ -127,25 +128,12 @@ class Option {
         return false;
     }
 
-    const std::string &name() const {
-        return config_.name;
-    }
-
-    char letter() const {
-        return config_.letter;
-    }
-
-    Variant::Type type() const {
-        return type_;
-    }
-
-    bool required() const {
-        return config_.required;
-    }
-
-    bool multivalent() const {
-        return multivalent_;
-    }
+    const std::string &name() const noexcept { return config_.name; }
+    char letter() const noexcept { return config_.letter; }
+    Variant::Type type() const noexcept { return type_; }
+    bool required() const noexcept { return config_.required; }
+    bool multivalent() const noexcept { return multivalent_; }
+    bool positional() const noexcept { return config_.positional; }
 
   private:
     const Config config_;
