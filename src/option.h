@@ -16,7 +16,7 @@ namespace argparse {
 
 class Option {
   public:
-    static constexpr std::size_t kTableSize = 5;
+    static constexpr std::size_t kTableSize = 6;
     using OptionTable = Table<kTableSize, Alignment::Center>;
 
     /// Configuration of the option
@@ -96,6 +96,7 @@ class Option {
         }
 
         return {{
+            required_ ? "x" : " ",
             name_,
             Variant::enum_to_str(type_),
             default_value_->string(),
