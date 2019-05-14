@@ -41,7 +41,7 @@ class Options {
     }
 
     void display() const {
-        OptionTable table({{"Name", "Type", "Default", "Help", "Allowed Values"}});
+        OptionTable table({{"Required", "Name", "Type", "Default", "Help", "Allowed Values"}});
 
         for (const auto &pair : options_) {
             const auto &option = pair.second;
