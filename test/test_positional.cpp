@@ -8,9 +8,9 @@ TEST_CASE("PositionalArguments", "Parsing") {
     Parser p;
     replace_exit_cb(p);
 
-    const auto &mode = p.add_leading_positional<std::string, 1>({.name = "mode"});
-    const auto &dir  = p.add_leading_positional<std::string, 2>({.name = "dir"});
-    const auto &file = p.add_leading_positional<std::string, 3>({.name = "file"});
+    const auto &mode = p.add_leading_positional<std::string>({.name = "mode"});
+    const auto &dir  = p.add_leading_positional<std::string>({.name = "dir"});
+    const auto &file = p.add_leading_positional<std::string>({.name = "file"});
 
     const auto &type = p.add<std::string>({.name = "type"});
     const auto &permissions = p.add<std::string>({.name = "permissions"});

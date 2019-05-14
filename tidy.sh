@@ -32,7 +32,7 @@ $CLANG_TIDY_PATH                              \
     -checks=*,$SUPRESSED_CHECKS               \
     --warnings-as-errors=*,$SUPRESSED_CHECKS  \
     -header-filter=src/                       \
-    test/test_help.cpp                        \
+    sample/main.cpp                           \
     --                                        \
     -std=c++14                                \
     $STDLIB                                   \

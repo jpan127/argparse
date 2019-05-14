@@ -40,7 +40,26 @@ class Options {
         return placeholder;
     }
 
-    void display() const {
+    /// Creates a string for the usage message
+    /// \note Positionals are skipped and are handled by the [Parser]
+    std::string usage_string() const {
+        auto usage_template = [](const auto &name) { return "[--" + name + "]"; };
+
+        std::stringstream ss;
+        for (const auto &pair : options_) {
+            const auto &name = pair.first;
+            const auto &option = pair.second;
+            if (!option->positional()) {
+                ss << usage_template(name) << " ";
+            }
+        }
+
+        return ss.str();
+    }
+
+    /// Creates a display string for all the options
+    /// Generates a table of the details of every option
+    std::string display_string() const {
         OptionTable table({{"Required", "Name", "Type", "Default", "Help", "Allowed Values"}});
 
         for (const auto &pair : options_) {
@@ -48,7 +67,7 @@ class Options {
             table.add_row(option->to_string());
         }
 
-        std::cout << table.display();
+        return table.display();
     }
 
     std::shared_ptr<Option> get(const std::string &name) {
@@ -70,14 +89,11 @@ class Options {
 
         return nullptr;
     }
-
-    auto begin() const {
-        return options_.begin();
-    }
-
-    auto end() const {
-        return options_.end();
-    }
+    
+    /// @{ Iterators for the map member
+    auto begin() const { return options_.begin(); }
+    auto end() const { return options_.end(); }
+    /// @}
 
   private:
     MapType options_{};
