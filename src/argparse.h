@@ -71,20 +71,10 @@ class Parser {
         });
     }
 
-    template <typename T, int32_t Position>
+    template <typename T>
     ConstPlaceHolder<T> add_leading_positional(Option::Config<T> config) {
-        static_assert(Position > 0, "Position is 1-indexed");
-
-        // Shift position to the left because the path argument will be stripped
-        constexpr int32_t kPositionMinusOne = Position - 1;
-        if (position_map_.find(kPositionMinusOne) != position_map_.end()) {
-            std::cout << "Position " << Position
-                      << " has already been taken, can not have multiple options in the same position\n";
-            return nullptr;
-        }
-
         // Save position
-        position_map_[kPositionMinusOne] = config.name;
+        positionals_.push_back(config.name);
 
         // All leading positional arguments are required, otherwise the positions invalidates others
         config.required = true;
@@ -110,11 +100,27 @@ class Parser {
     }
 
     void help() const {
-        std::cout
-            << "Usage       : " << name_ << " [Options(s)]...\n"
-            << "Description : " << help_ << '\n'
-            << "Options     : " << std::endl;
-        options_.display();
+        // Separator
+        std::cout << '\n';
+
+        // Usage
+        std::stringstream ss;
+        ss << "Usage: ";
+        ss << name_ << " ";
+        for (const auto &name : positionals_) {
+            ss << "[" << name << "]" << " ";
+        }
+        ss << options_.usage_string();
+        std::cout << ss.str() << '\n';
+
+        // Help / description
+        std::cout << "Description: " << help_ << '\n';
+
+        // Separator
+        std::cout << '\n';
+
+        // Options table
+        std::cout << "Options:\n" << options_.display_string() << std::endl;
 
         cbs_.help();
     }
@@ -129,7 +135,7 @@ class Parser {
     std::unordered_map<std::string, Parser> &add_subparser(std::string &&group,
                                                            std::unordered_set<std::string> &&allowed_values) {
         if (subparser_.has_value()) {
-            std::cout << "Can only register one subparser per parser" << std::endl;
+            log_error("Can only register one subparser per parser");
             cbs_.exit();
             return subparser_.value();
         }
@@ -149,8 +155,8 @@ class Parser {
     }
 
   private:
-    const std::string name_ = "No Name";
-    const std::string help_ = "No Help";
+    const std::string name_ = "<PROGRAM_NAME>";
+    const std::string help_ = "<HELP_MESSAGE>";
 
     Callbacks cbs_;
     Options options_;
@@ -158,7 +164,8 @@ class Parser {
     detail::Parser parser_;
     std::unordered_set<std::string> existing_args_;
 
-    std::unordered_map<int32_t, std::string> position_map_;
+    /// Positional arguments that go before other arguments
+    std::vector<std::string> positionals_;
 
     /// Map of subparser name to subparser
     pstd::optional<std::unordered_map<std::string, Parser>> subparser_;
@@ -190,6 +197,8 @@ class Parser {
             const auto iterator = subparser_->find(selected_subparser_);
             if (iterator == subparser_->end()) {
                 cbs_.invalid(subparser_group_.value(), {selected_subparser_});
+                help();
+                cbs_.exit();
                 return remaining_args_;
             }
 
@@ -218,7 +227,8 @@ class Parser {
     }
 
     void cross_check(Args && args) {
-        auto check = [this](auto &map) {
+        bool any_invalid = false;
+        auto check = [this, &any_invalid](auto &map) {
             // Converts char or std::string into std::string
             auto make_name_string = [](const auto &chars) {
                 std::string s;
@@ -239,7 +249,6 @@ class Parser {
                 // Did not find option
                 auto option = options_.get(name);
                 if (!option) {
-                    cbs_.invalid(name_string, values);
                     continue;
                 }
 
@@ -252,6 +261,7 @@ class Parser {
                 if (option->type() == Variant::Type::kBool) {
                     if (!option->set("true")) {
                         cbs_.invalid(name_string, {"true"});
+                        any_invalid = true;
                     }
                     existing_args_.insert(option->name());
                     continue;
@@ -260,6 +270,7 @@ class Parser {
                 // No values for the option
                 if (values.empty()) {
                     cbs_.missing(name_string);
+                    any_invalid = true;
                     continue;
                 }
 
@@ -270,6 +281,7 @@ class Parser {
                 if (option->multivalent()) {
                     if (!option->set(values)) {
                         cbs_.invalid(name_string, values);
+                        any_invalid = true;
                     }
                     continue;
                 }
@@ -277,49 +289,50 @@ class Parser {
                 // Not multivalent, should not have more than 1 value
                 if (values.size() > 1) {
                     cbs_.invalid(name_string, values);
+                    any_invalid = true;
                 } else {
                     // Not multivalent, only one value
                     if (!option->set(values[0])) {
                         cbs_.invalid(name_string, {values[0]});
+                        any_invalid = true;
                     }
                 }
             }
         };
 
         const auto &positional_args = parser_.positional_args();
-        for (const auto &pair : position_map_) {
-            const auto &position = pair.first;
-            const auto &name = pair.second;
-            // Positive position, leading option
-            if (position >= 0) {
-                // Check if any value exists over there
-                if (position < positional_args.size()) {
-                    // Option should exist, the name is the same name that was used to add the option
-                    auto option = options_.get(name);
-                    assert(option);
+        for (std::size_t position = 0; position < positionals_.size(); position++) {
+            const auto &name = positionals_[position];
 
-                    // Mark as existing
-                    existing_args_.insert(name);
+            // Check if any value exists over there
+            if (position < positional_args.size()) {
+                // Option should exist, the name is the same name that was used to add the option
+                auto option = options_.get(name);
+                assert(option);
 
-                    // Set the value
-                    const auto &value = positional_args[position];
-                    std::cout << "Setting " << name << " to " << value << std::endl;
-                    if (!option->set(value)) {
-                        cbs_.invalid(name, {value});
-                    }
-                } else {
-                    std::cout
-                        << "Expected positional argument [" << name << "] at "
-                        << position << " position" << std::endl;
-                    cbs_.exit();
+                // Mark as existing
+                existing_args_.insert(name);
+
+                // Set the value
+                const auto &value = positional_args[position];
+                if (!option->set(value)) {
+                    cbs_.invalid(name, {value});
+                    any_invalid = true;
                 }
             } else {
-                // Not supporting trailing positional args yet
+                log_error("Expected positional argument [", name, "] at", position, "position");
+                help();
+                cbs_.exit();
             }
         }
 
         check(args.letter_map());
         check(args.string_map());
+
+        if (any_invalid) {
+            help();
+            cbs_.exit();
+        }
     }
 
     bool check_requirements() const {
@@ -339,18 +352,39 @@ class Parser {
     void set_default_callbacks() {
         cbs_.exit = [] { throw std::runtime_error("Parsing failed"); };
         cbs_.help = [] { };
-        cbs_.missing = [](const auto &s) {
-            std::cout << "Missing required argument : " << s << std::endl;
+        cbs_.missing = [this](const auto &s) {
+            log_error("Missing required argument : ", s);
         };
-        cbs_.invalid = [](const auto &name, const auto &values) {
+        cbs_.invalid = [this](const auto &name, const auto &values) {
             std::string values_combined = "{";
             for (const auto &value : values) {
                 values_combined += " " + value;
             }
             values_combined += " }";
             const char *v = values.empty() ? "???" : values_combined.c_str();
-            printf("Argument invalid : [ --%s = %s ]\n", name.c_str(), v);
+            log_error("Argument invalid : [ --", name, "=", v, "]");
         };
+    }
+
+    template <typename ... Args>
+    void log_error(Args && ... args) const {
+        static constexpr char kRedColorCode[] = "\033[0;31m";
+        static constexpr char kRevertColorCode[] = "\033[0m";
+        static constexpr char kPrefix[] = "[Parsing Error] ";
+        std::stringstream ss;
+        ss << kRedColorCode << kPrefix;
+        log_error(ss, std::forward<Args>(args)...);
+        std::cout << ss.str() << kRevertColorCode;
+    }
+
+    template <typename Arg, typename ... Args>
+    void log_error(std::stringstream &ss, Arg && first, Args && ... args) const {
+        ss << first << " ";
+        log_error(ss, std::forward<Args>(args)...);
+    }
+
+    void log_error(std::stringstream &ss) const {
+        ss << "\n";
     }
 };
 
