@@ -16,8 +16,8 @@ TEST_CASE("BasicArgument", "Parsing") {
 
         const auto args = p.parse(argc, argv);
         REQUIRE(args.size() == 1);
-        REQUIRE(args.exists('d'));
-        REQUIRE(args.get('d').empty());
+        REQUIRE(args.exists("d"));
+        REQUIRE(args.get("d").empty());
     }
 
     SECTION("One option one value") {
@@ -30,9 +30,9 @@ TEST_CASE("BasicArgument", "Parsing") {
 
         const auto args = p.parse(argc, argv);
         REQUIRE(args.size() == 1);
-        REQUIRE(args.exists('d'));
-        REQUIRE(args.get('d').size() == 1);
-        REQUIRE(args.get('d')[0] == "value");
+        REQUIRE(args.exists("d"));
+        REQUIRE(args.get("d").size() == 1);
+        REQUIRE(args.get("d")[0] == "value");
     }
 
     SECTION("One option 5 values") {
@@ -50,9 +50,9 @@ TEST_CASE("BasicArgument", "Parsing") {
 
         const auto args = p.parse(argc, argv);
         REQUIRE(args.size() == 1);
-        REQUIRE(args.exists('d'));
-        REQUIRE(args.get('d').size() == kNumValues);
-        const auto &vec = args.get('d');
+        REQUIRE(args.exists("d"));
+        REQUIRE(args.get("d").size() == kNumValues);
+        const auto &vec = args.get("d");
         for (std::size_t ii = 0; ii < kNumValues; ii++) {
             REQUIRE(vec[ii] == argv[ii + 2]);
         }
@@ -75,15 +75,15 @@ TEST_CASE("BasicArgument", "Parsing") {
 
         const auto args = p.parse(argc, argv);
         REQUIRE(args.size() == 3);
-        REQUIRE(args.exists('a'));
-        REQUIRE(args.exists('b'));
-        REQUIRE(args.exists('c'));
-        REQUIRE(args.get('a').size() == 1);
-        REQUIRE(args.get('b').size() == 2);
-        REQUIRE(args.get('c').size() == 3);
-        const auto &a = args.get('a');
-        const auto &b = args.get('b');
-        const auto &c = args.get('c');
+        REQUIRE(args.exists("a"));
+        REQUIRE(args.exists("b"));
+        REQUIRE(args.exists("c"));
+        REQUIRE(args.get("a").size() == 1);
+        REQUIRE(args.get("b").size() == 2);
+        REQUIRE(args.get("c").size() == 3);
+        const auto &a = args.get("a");
+        const auto &b = args.get("b");
+        const auto &c = args.get("c");
         REQUIRE(a[0] == "value1");
         REQUIRE(b[0] == "value1");
         REQUIRE(b[1] == "value2");

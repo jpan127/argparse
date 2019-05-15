@@ -31,6 +31,7 @@ fi
 $CLANG_TIDY_PATH                              \
     -checks=*,$SUPRESSED_CHECKS               \
     --warnings-as-errors=*,$SUPRESSED_CHECKS  \
+    -quiet                                    \
     -header-filter=src/                       \
     sample/main.cpp                           \
     --                                        \
