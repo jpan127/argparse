@@ -10,25 +10,17 @@ class Args {
 
   public:
     void create(const std::string &key) { string_map_[key]; }
-    void create(const char key) { letter_map_[key]; }
     void create(const std::string &key, Values &&value) { string_map_[key] = std::move(value); }
-    void create(const char key, Values &&value) { letter_map_[key] = std::move(value); }
-
-    void insert(const std::string &key,std::string &&value) { string_map_[key].push_back(std::move(value)); }
-    void insert(const char key, std::string &&value) { letter_map_[key].push_back(std::move(value)); }
-
+    void insert(const std::string &key, std::string &&value) { string_map_[key].push_back(std::move(value)); }
     bool exists(const std::string &key) const { return string_map_.find(key) != string_map_.end(); }
-    bool exists(const char key) const { return letter_map_.find(key) != letter_map_.end(); }
-
     const Values &get(const std::string &key) const { return string_map_.at(key); }
-    const Values &get(const char key) const { return letter_map_.at(key); }
+    std::size_t size() const { return string_map_.size(); }
 
-    std::size_t size() const { return letter_map_.size() + string_map_.size(); }
-
-    auto &letter_map() { return letter_map_; }
-    auto &string_map() { return string_map_; }
+    auto begin() const { return string_map_.begin(); }
+    auto end() const { return string_map_.end(); }
+    auto begin() { return string_map_.begin(); }
+    auto end() { return string_map_.end(); }
 
   private:
-    std::unordered_map<char, Values> letter_map_;
     std::unordered_map<std::string, Values> string_map_;
 };

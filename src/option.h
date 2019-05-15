@@ -16,13 +16,13 @@ namespace argparse {
 
 class Option {
   public:
+    static constexpr char kUnusedChar = 0;
     static constexpr std::size_t kTableSize = 6;
     using OptionTable = Table<kTableSize, Alignment::Center>;
 
     /// Configuration of the option
     template <typename T>
     struct Config {
-        static constexpr char kUnusedChar = 0;
         pstd::optional<T> default_value{};
         std::unordered_set<T> allowed_values{};
         std::string name{};        /// Name of the option, multicharacter string
@@ -43,7 +43,6 @@ class Option {
           multivalent_(false),
           positional_(config.positional),
           required_(config.required),
-          letter_(config.letter),
           placeholder_(placeholder) {
 
         assert(placeholder_);
@@ -66,7 +65,6 @@ class Option {
           multivalent_(true),
           positional_(config.positional),
           required_(config.required),
-          letter_(config.letter),
           placeholder_(placeholder) {
 
         assert(placeholder_);
@@ -140,7 +138,6 @@ class Option {
     }
 
     const std::string &name() const noexcept { return name_; }
-    char letter() const noexcept { return letter_; }
     Variant::Type type() const noexcept { return type_; }
     bool required() const noexcept { return required_; }
     bool multivalent() const noexcept { return multivalent_; }
@@ -155,7 +152,6 @@ class Option {
     const bool multivalent_;
     const bool positional_;
     const bool required_;
-    const char letter_;
 
     /// Handle to value to be populated
     std::shared_ptr<void> placeholder_;

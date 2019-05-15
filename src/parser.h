@@ -48,11 +48,7 @@ class Parser {
             // If this is an option, set it as the option for future token
             strip_prefix(s);
             last_option = std::move(s);
-            if (last_option.length() == 1) {
-                args.create(last_option[0]);
-            } else {
-                args.create(last_option);
-            }
+            args.create(last_option);
         } else {
             // No last option means an option has not been found yet
             // It is assumed to be a positional argument
@@ -62,11 +58,7 @@ class Parser {
             }
 
             // Map the option to this value
-            if (last_option.length() == 1) {
-                args.insert(last_option[0], std::move(s));
-            } else {
-                args.insert(last_option, std::move(s));
-            }
+            args.insert(last_option, std::move(s));
         }
     }
 

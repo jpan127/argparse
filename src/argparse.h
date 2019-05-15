@@ -42,12 +42,20 @@ class Parser {
     template <typename T>
     ConstPlaceHolder<std::vector<T>> add_multivalent(Option::Config<T> config) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
+
+        // Check and update name
+        validate<T>(config);
+
         return options_.add_multivalent<T>(std::move(config));
     }
 
     template <typename T>
     ConstPlaceHolder<T> add(Option::Config<T> config) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
+
+        // Check and update name
+        validate<T>(config);
+
         return options_.add<T>(std::move(config));
     }
 
@@ -56,23 +64,34 @@ class Parser {
     template <typename T>
     ConstPlaceHolder<T> add(std::string name, // NOLINT(performance-unnecessary-value-param)
                             std::string help, // NOLINT(performance-unnecessary-value-param)
-                            const char letter = Option::Config<T>::kUnusedChar,
+                            const char letter = Option::kUnusedChar,
                             const bool required = false,
                             pstd::optional<T> default_value = T{},
                             std::unordered_set<T> allowed_values = {}) {
         static_assert(detail::acceptable<T>(), "Must be a valid type");
-        return options_.add<T>({
+
+        Option::Config<T> config{
             .name = std::move(name),
             .help = std::move(help),
             .letter = letter,
             .required = required,
             .default_value = std::move(default_value),
             .allowed_values = std::move(allowed_values)
-        });
+        };
+
+        // Check and update name
+        validate<T>(config);
+
+        return options_.add<T>(std::move(config));
     }
 
     template <typename T>
     ConstPlaceHolder<T> add_leading_positional(Option::Config<T> config) {
+        static_assert(detail::acceptable<T>(), "Must be a valid type");
+
+        // Check and update name
+        validate<T>(config);
+
         // Save position
         positionals_.push_back(config.name);
 
@@ -176,6 +195,31 @@ class Parser {
     /// Chosen subparser from the subparser group
     std::string selected_subparser_;
 
+    template <typename T>
+    void validate(Option::Config<T> &config) {
+        const bool not_using_char = (config.letter == Option::kUnusedChar);
+        const bool invalid_name = (config.name.length() == 1);
+        const bool no_name = config.name.empty();
+
+        // If not using char, the name must be valid
+        if (not_using_char) {
+            if (invalid_name || no_name) {
+                throw InvalidConfig{};
+            }
+        } else {
+            // If using char, the name must be valid or empty
+            if (invalid_name) {
+                throw InvalidConfig{};
+            }
+
+            // If the name is empty, then the name will become the letter
+            if (no_name) {
+                config.name += config.letter;
+            }
+        }
+
+    }
+
     /// Parse arguments
     /// \param pop_first To remove the first argument or not
     /// \return          Remaining, non-parsed arguments
@@ -226,80 +270,10 @@ class Parser {
         return remaining_args_;
     }
 
-    void cross_check(Args && args) {
+    void cross_check(Args &&args) {
         bool any_invalid = false;
-        auto check = [this, &any_invalid](auto &map) {
-            // Converts char or std::string into std::string
-            auto make_name_string = [](const auto &chars) {
-                std::string s;
-                s += chars;
-                return s;
-            };
 
-            for (auto &pair : map) {
-                const auto &name = pair.first;
-                auto &values = pair.second;
-                const auto name_string = make_name_string(name);
-
-                if (name_string == detail::Parser::kRemainingArgsKey) {
-                    remaining_args_ = std::move(values);
-                    continue;
-                }
-
-                // Did not find option
-                auto option = options_.get(name);
-                if (!option) {
-                    continue;
-                }
-
-                // Don't check for positional arguments here
-                if (option->positional()) {
-                    continue;
-                }
-
-                // Boolean parameter just checks if the flag exists or not
-                if (option->type() == Variant::Type::kBool) {
-                    if (!option->set("true")) {
-                        cbs_.invalid(name_string, {"true"});
-                        any_invalid = true;
-                    }
-                    existing_args_.insert(option->name());
-                    continue;
-                }
-
-                // No values for the option
-                if (values.empty()) {
-                    cbs_.missing(name_string);
-                    any_invalid = true;
-                    continue;
-                }
-
-                // This option has a value, add it to set of args
-                existing_args_.insert(option->name());
-
-                // Multivalent, set all values
-                if (option->multivalent()) {
-                    if (!option->set(values)) {
-                        cbs_.invalid(name_string, values);
-                        any_invalid = true;
-                    }
-                    continue;
-                }
-
-                // Not multivalent, should not have more than 1 value
-                if (values.size() > 1) {
-                    cbs_.invalid(name_string, values);
-                    any_invalid = true;
-                } else {
-                    // Not multivalent, only one value
-                    if (!option->set(values[0])) {
-                        cbs_.invalid(name_string, {values[0]});
-                        any_invalid = true;
-                    }
-                }
-            }
-        };
-
+        // Check positional arguments
         const auto &positional_args = parser_.positional_args();
         for (std::size_t position = 0; position < positionals_.size(); position++) {
             const auto &name = positionals_[position];
@@ -326,8 +300,68 @@ class Parser {
             }
         }
 
-        check(args.letter_map());
-        check(args.string_map());
+        // Check non positional arguments
+        for (auto &pair : args) {
+            const auto &name = pair.first;
+            auto &values = pair.second;
+
+            if (name == detail::Parser::kRemainingArgsKey) {
+                remaining_args_ = std::move(values);
+                continue;
+            }
+
+            // Did not find option
+            auto option = options_.get(name);
+            if (!option) {
+                continue;
+            }
+
+            // Don't check for positional arguments here
+            if (option->positional()) {
+                continue;
+            }
+
+            // Boolean parameter just checks if the flag exists or not
+            if (option->type() == Variant::Type::kBool) {
+                if (!option->set("true")) {
+                    cbs_.invalid(name, {"true"});
+                    any_invalid = true;
+                }
+                existing_args_.insert(option->name());
+                continue;
+            }
+
+            // No values for the option
+            if (values.empty()) {
+                cbs_.missing(name);
+                any_invalid = true;
+                continue;
+            }
+
+            // This option has a value, add it to set of args
+            existing_args_.insert(option->name());
+
+            // Multivalent, set all values
+            if (option->multivalent()) {
+                if (!option->set(values)) {
+                    cbs_.invalid(name, values);
+                    any_invalid = true;
+                }
+                continue;
+            }
+
+            // Not multivalent, should not have more than 1 value
+            if (values.size() > 1) {
+                cbs_.invalid(name, values);
+                any_invalid = true;
+            } else {
+                // Not multivalent, only one value
+                if (!option->set(values[0])) {
+                    cbs_.invalid(name, {values[0]});
+                    any_invalid = true;
+                }
+            }
+        }
 
         if (any_invalid) {
             help();
@@ -336,16 +370,12 @@ class Parser {
     }
 
     bool check_requirements() const {
-        bool met = true;
-        for (const auto &pair : options_) {
-            const auto &name = pair.first;
-            const auto option = pair.second;
-            if (option->required() && existing_args_.find(name) == existing_args_.end()) {
-                cbs_.missing(std::string(name));
-                met = false;
-            }
+        const auto &missings = options_.check_requirements(existing_args_);
+        for (const auto &pair : missings) {
+            cbs_.missing(pair.first);
         }
-        return met;
+
+        return missings.empty();
     }
 
     /// Set the default callbacks into [cbs_]
