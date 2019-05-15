@@ -3,67 +3,73 @@ clear
 
 set -e
 
-if [[ -z ${CXX+x} ]]; then
-    CXX="clang++"
-fi
+# Make build directory
+mkdir -p build
 
+# Build windows manually
 if [[ "$OSTYPE" == "msys" ]]; then
-    STDLIB=""
-    EXTRA_FLAGS="-Xclang -flto-visibility-public-std"
+    build_tests() {
+        time                                      \
+        $CXX -std=c++14 test/*.cpp                \
+            "-Xclang -flto-visibility-public-std" \
+            -Wall                                 \
+            -Isrc                                 \
+            -Imodules/variant/include             \
+            -Imodules/test                        \
+            -Imodules/optional                    \
+            -Imodules/catch2                      \
+            -o build/tests                        \
+            >&2
+        echo $?
+    }
+
+    build_samples() {
+        time                                      \
+        $CXX -std=c++14 sample/*.cpp              \
+            "-Xclang -flto-visibility-public-std" \
+            -Isrc                                 \
+            -Imodules/variant/include             \
+            -Imodules/optional                    \
+            -Imodules/catch2                      \
+            -o build/sample                       \
+            >&2
+        echo $?
+    }
+
+    return_a=$(build_tests &)
+    return_b=$(build_samples &)
+    wait
+    if [[ $return_a != "0" || $return_b != "0" ]]; then
+        echo "Failed builds"
+        exit 1
+    fi
+# Build linux with CMake
 elif [[ "$OSTYPE" == "linux-gnu" ]]; then
-    STDLIB="-stdlib=libc++"
-    EXTRA_FLAGS=""
+    cd build
+    cmake ..
+    make -j
+    cd ..
 fi
 
-build_tests() {
-    time                                    \
-    $CXX -std=c++14 test/*.cpp              \
-        $STDLIB                             \
-        $EXTRA_FLAGS                        \
-        -Wall                               \
-        -Isrc                               \
-        -Imodules/variant/include           \
-        -Imodules/test                      \
-        -Imodules/optional                  \
-        -Imodules/catch2                    \
-        -o tests                            \
-        >&2
-    echo $?
-}
+####################
+#     Run Tests    #
+####################
+./build/tests $1 2>/dev/null 1>/dev/null
 
-build_samples() {
-    time                                    \
-    $CXX -std=c++14 sample/*.cpp            \
-        $STDLIB                             \
-        $EXTRA_FLAGS                        \
-        -Isrc                               \
-        -Imodules/variant/include           \
-        -Imodules/optional                  \
-        -Imodules/catch2                    \
-        -o sample.exe                       \
-        >&2
-    echo $?
-}
-
-run_tests() {
-    bash ./test_runner.sh $1 >&2
-    echo $?
-}
-
-return_a=$(build_tests &)
-return_b=$(build_samples &)
-wait
-if [[ $return_a != "0" || $return_b != "0" ]]; then
-    echo "Failed builds"
+# If it failed, then rerun with stdout stderr
+return_value=$?
+if [ $return_value != "0" ]; then
+    ./tests $1
     exit 1
 fi
+echo "--------------------"
+echo "| Tests Successful |"
+echo "--------------------"
 
-return_c=$(run_tests $1)
-if [[ $return_c != "0" ]]; then
-    echo "Failed tests"
-    exit 1
-fi
-echo "Tests successful"
-
+####################
+#     Run Tidy     #
+####################
 bash ./tidy.sh
-echo "All tidied!"
+echo "--------------------"
+echo "|    All Tidied    |"
+echo "--------------------"
