@@ -15,6 +15,7 @@ SUPRESSED_CHECKS="\
 -llvm-header-guard,\
 -misc-definitions-in-headers,\
 -modernize-avoid-c-arrays,\
+-readability-avoid-const-params-in-decls,\
 -readability-named-parameter\
 "
 
@@ -32,13 +33,13 @@ $CLANG_TIDY_PATH                              \
     -checks=*,$SUPRESSED_CHECKS               \
     --warnings-as-errors=*,$SUPRESSED_CHECKS  \
     -quiet                                    \
-    -header-filter=src/                       \
-    sample/main.cpp                           \
+    -header-filter=argparse/include/          \
+    argparse/src/*.cpp                        \
     --                                        \
     -std=c++14                                \
     $STDLIB                                   \
     $EXTRA_FLAGS                              \
     -Imodules/variant/include                 \
     -Imodules/optional                        \
-    -Isrc                                     \
+    -Iargparse/include                        \
     -Imodules/catch2
