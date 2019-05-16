@@ -66,14 +66,16 @@ class Parser {
         assert(s.length() > 0);
 
         if (s[0] == '-') {
+            // Check for signed integers
+            if (s.length() > 1) {
+                if (0 != std::isdigit(s[1])) {
+                    return false;
+                }
+            }
             return true;
         }
 
-        if (s.length() >= 2 && s[0] == '-' && s[1] == '-') {
-            return true;
-        }
-
-        return false;
+        return (s.length() >= 2 && s[0] == '-' && s[1] == '-');
     }
 
     void strip_prefix(std::string &s) {
