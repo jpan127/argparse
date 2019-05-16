@@ -1,6 +1,7 @@
 #include "catch.hpp"
 
 #include "argparse.h"
+#include "parser.h"
 #include "utilities.h"
 using namespace argparse;
 
