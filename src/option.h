@@ -106,35 +106,13 @@ class Option {
     /// \returns True if set successfully, false if not (value is not allowed)
     bool set(const std::string &s) {
         assert(!multivalent_);
-
-        switch (type_) {
-        case Variant::Type::kString : return set_helper<std::string>(s); break;
-        case Variant::Type::kUint64 : return set_helper<uint64_t>(s); break;
-        case Variant::Type::kInt64  : return set_helper<int64_t>(s); break;
-        case Variant::Type::kDouble : return set_helper<double>(s); break;
-        case Variant::Type::kFloat  : return set_helper<float>(s); break;
-        case Variant::Type::kBool   : return set_helper<bool>(s); break;
-        default                     : assert(false);
-        }
-
-        return false;
+        return set_dispatch_helper(s);
     }
 
     /// \returns True if set successfully, false if not (value is not allowed)
     bool set(const std::vector<std::string> &s) {
         assert(multivalent_);
-
-        switch (type_) {
-        case Variant::Type::kString : return set_helper<std::string>(s); break;
-        case Variant::Type::kUint64 : return set_helper<uint64_t>(s); break;
-        case Variant::Type::kInt64  : return set_helper<int64_t>(s); break;
-        case Variant::Type::kDouble : return set_helper<double>(s); break;
-        case Variant::Type::kFloat  : return set_helper<float>(s); break;
-        case Variant::Type::kBool   : return set_helper<bool>(s); break;
-        default                     : assert(false);
-        }
-
-        return false;
+        return set_dispatch_helper(s);
     }
 
     const std::string &name() const noexcept { return name_; }
@@ -164,6 +142,28 @@ class Option {
         }
 
         return {};
+    }
+
+    template <typename T>
+    bool set_dispatch_helper(const T &s) {
+        switch (type_) {
+        case Variant::Type::kString : return set_helper<std::string>(s);
+        case Variant::Type::kDouble : return set_helper<double>(s);
+        case Variant::Type::kFloat  : return set_helper<float>(s);
+        case Variant::Type::kUint64 : return set_helper<uint64_t>(s);
+        case Variant::Type::kInt64  : return set_helper<int64_t>(s);
+        case Variant::Type::kUint32 : return set_helper<uint32_t>(s);
+        case Variant::Type::kInt32  : return set_helper<int32_t>(s);
+        case Variant::Type::KUint16 : return set_helper<uint16_t>(s);
+        case Variant::Type::KInt16  : return set_helper<int16_t>(s);
+        case Variant::Type::kUint8  : return set_helper<uint8_t>(s);
+        case Variant::Type::kInt8   : return set_helper<int8_t>(s);
+        case Variant::Type::kBool   : return set_helper<bool>(s);
+        case Variant::Type::kChar   : return set_helper<char>(s);
+        default                     : assert(false);
+        }
+
+        return false;
     }
 
     /// \returns True if set successfully, false if not (value is not allowed)
