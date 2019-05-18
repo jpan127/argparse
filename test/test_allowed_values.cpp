@@ -4,6 +4,7 @@
 #include "utilities.h"
 using namespace argparse;
 
+/// Tests that values must be one of the allowed values
 TEST_CASE("AllowedValues", "Parsing") {
     Parser p;
     replace_exit_cb(p);

@@ -8,6 +8,7 @@
 
 namespace argparse {
 
+/// Encapsulates a set of options
 class Options {
     using OptionTable = Option::OptionTable;
     using MapType = std::unordered_map<std::string, std::shared_ptr<Option>>;
@@ -15,9 +16,13 @@ class Options {
   public:
     using NameLetterVector = std::vector<std::pair<std::string, std::string>>;
 
+    /// Add an option that can have a single value
+    /// \param config Configuration for the option
     template <typename T>
     ConstPlaceHolder<T> add(Config<T> &&config);
 
+    /// Add an option that can have multiple values
+    /// \param config Configuration for the option
     template <typename T>
     ConstPlaceHolder<std::vector<T>> add_multivalent(Config<T> &&config);
 
@@ -29,6 +34,9 @@ class Options {
     /// Generates a table of the details of every option
     std::string display_string() const;
 
+    /// Searches for an option by name
+    /// \param name Name of the option
+    /// \return     A pointer to the option if found, otherwise nullptr
     std::shared_ptr<Option> get(const std::string &name);
 
     /// Check the input set of arguments with the set of required arguments

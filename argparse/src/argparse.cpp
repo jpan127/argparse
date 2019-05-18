@@ -1,5 +1,6 @@
 #include "argparse.h"
 
+#include "args.h"
 #include "convert.h"
 #include "exceptions.h"
 #include "options.h"
@@ -15,16 +16,19 @@ namespace argparse {
 
 namespace {
 
+/// Overload for no argument
 void log_error(std::stringstream &ss) {
     ss << "\n";
 }
 
+/// Overload for 1+ arguments
 template <typename Arg, typename ... Args>
 void log_error(std::stringstream &ss, Arg && first, Args && ... args) {
     ss << first << " ";
     log_error(ss, std::forward<Args>(args)...);
 }
 
+/// Prints variadic number of arguments, space separated, red, and with a prefix
 template <typename ... Args>
 void log_error(Args && ... args) {
     static constexpr char kRedColorCode[] = "\033[0;31m";

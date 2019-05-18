@@ -3,6 +3,7 @@
 #include "variant.h"
 using namespace argparse;
 
+/// Tests conversions to / from [Variant]
 TEST_CASE("variant", "Parsing") {
     Variant var;
 

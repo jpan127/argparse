@@ -4,6 +4,7 @@
 #include "utilities.h"
 using namespace argparse;
 
+/// Tests parsing of subparser arguments
 TEST_CASE("Subparser", "Subparsing") {
     Parser p;
     auto &subparsers = p.add_subparser("mode", {"play", "stop", "pause"});

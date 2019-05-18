@@ -4,6 +4,7 @@
 #include "utilities.h"
 using namespace argparse;
 
+/// Tests parsing of multiple values per option
 TEST_CASE("MultivalentOption", "Parsing") {
     auto test = [](const auto &mode, auto &p) {
         constexpr int argc = 6;

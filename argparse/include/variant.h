@@ -7,6 +7,8 @@
 
 namespace argparse {
 
+/// Checks if a type is supported by this library
+/// Either [std::string] or a fundamental type
 template <typename T>
 constexpr bool supported() {
     if (std::is_same<T, std::string>::value) {
@@ -16,6 +18,8 @@ constexpr bool supported() {
     return std::is_fundamental<T>::value;
 }
 
+/// A specific and customized version of [std::variant]
+/// The obect is implemented as a tagged union, and can only one of a set of types at a time
 class Variant {
   public:
     /// Instantiate a constructor, as it is implicitly deleted
@@ -36,15 +40,15 @@ class Variant {
     Variant &operator=(const Variant &other);
     Variant &operator=(Variant &&other) noexcept;
 
+    /// Converts the current value into a string
+    std::string string() const;
+
     /// Any assignment operator, but bounded by valid union types
     template <typename T>
     Variant &operator=(T value) {
         set(value);
         return *this;
     }
-
-    /// Converts the current value into a string
-    std::string string() const;
 
     /// Visitor method
     template <typename Visitor>
@@ -63,36 +67,12 @@ class Variant {
         case Type::kInt8   : return visitor(int8_t_);
         case Type::kBool   : return visitor(bool_);
         case Type::kChar   : return visitor(char_);
-        case Type::kNone:
-        default:
-            assert(false);
+        case Type::kNone   :
+        default            : assert(false);
         }
     }
 
-    struct hash {
-        std::size_t operator()(const Variant &v) const {
-            const auto type_hash = std::hash<std::size_t>{}(static_cast<std::size_t>(v.type_));
-            switch (v.type_) {
-            case Type::kString : return type_hash ^ std::hash<std::string>{}(v.string_);
-            case Type::kDouble : return type_hash ^ std::hash<double>{}(v.double_);
-            case Type::kFloat  : return type_hash ^ std::hash<float>{}(v.float_);
-            case Type::kUint64 : return type_hash ^ std::hash<uint64_t>{}(v.uint64_t_);
-            case Type::kInt64  : return type_hash ^ std::hash<int64_t>{}(v.int64_t_);
-            case Type::kUint32 : return type_hash ^ std::hash<uint32_t>{}(v.uint32_t_);
-            case Type::kInt32  : return type_hash ^ std::hash<int32_t>{}(v.int32_t_);
-            case Type::KUint16 : return type_hash ^ std::hash<uint16_t>{}(v.uint16_t_);
-            case Type::KInt16  : return type_hash ^ std::hash<int16_t>{}(v.int16_t_);
-            case Type::kUint8  : return type_hash ^ std::hash<uint8_t>{}(v.uint8_t_);
-            case Type::kInt8   : return type_hash ^ std::hash<int8_t>{}(v.int8_t_);
-            case Type::kBool   : return type_hash ^ std::hash<bool>{}(v.bool_);
-            case Type::kChar   : return type_hash ^ std::hash<char>{}(v.char_);
-            case Type::kNone:
-            default:
-                assert(false);
-            }
-        }
-    };
-
+    /// @{ Equality operator for self and any of the supported types
     bool operator==(const Variant &other) const;
     bool operator==(const std::string &value) const;
     bool operator==(const double &value) const;
@@ -107,11 +87,18 @@ class Variant {
     bool operator==(const int8_t &value) const;
     bool operator==(const bool &value) const;
     bool operator==(const char &value) const;
+    /// @}
+
+    /// Functor for hashing this object
+    struct hash {
+        std::size_t operator()(const Variant &v) const;
+    };
 
   private:
     /// Which type is currently constructed
     Type type_ = Type::kNone;
 
+    /// These are the only supported types and members
     /// Tagged union
     union {
         std::string string_;
@@ -129,12 +116,13 @@ class Variant {
         char char_;
     };
 
+    /// Copies the value of another instance
     void copy(const Variant &other);
 
     /// Only std::string needs a destructor, so destruct it when it is going out of scope
     void destroy();
 
-    /// Calls any destructors, sets the tag, then placement new's the new value
+    /// @{ Calls any destructors, sets the tag, then placement new's the new value
     void set(const char *value);
     void set(std::string value);
     void set(double value);
@@ -149,6 +137,7 @@ class Variant {
     void set(int8_t value);
     void set(bool value);
     void set(char value);
+    /// @}
 };
 
 } // namespace argparse

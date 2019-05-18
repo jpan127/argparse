@@ -1,6 +1,3 @@
-#include <cassert>
-#include <numeric>
-
 template <std::size_t Columns, Alignment RowAlignment>
 Table<Columns, RowAlignment>::Table(Row &&header) {
     rows_.push_back(std::move(header));

@@ -4,6 +4,7 @@
 #include "utilities.h"
 using namespace argparse;
 
+/// Tests that the help message is called at the appropriate times
 TEST_CASE("HelpMessage", "Parsing") {
     uint32_t num_times_help_called = 0;
 

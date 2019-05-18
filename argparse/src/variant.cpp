@@ -47,9 +47,8 @@ std::string Variant::string() const {
     case Type::kInt8   : ss << int8_t_;   break;
     case Type::kBool   : ss << bool_;     break;
     case Type::kChar   : ss << char_;     break;
-    case Type::kNone:
-    default:
-        break;
+    case Type::kNone   :
+    default            :                  break;
     }
 
     return ss.str();
@@ -74,9 +73,8 @@ bool Variant::operator==(const Variant &other) const {
     case Type::kInt8   : return (int8_t_ == other.int8_t_);
     case Type::kBool   : return (bool_ == other.bool_);
     case Type::kChar   : return (char_ == other.char_);
-    case Type::kNone:
-    default:
-        assert(false);
+    case Type::kNone   :
+    default            : assert(false);
     }
 
     return false;
@@ -111,9 +109,8 @@ void Variant::copy(const Variant &other) {
     case Type::kInt8   : set(other.int8_t_);   break;
     case Type::kBool   : set(other.bool_);     break;
     case Type::kChar   : set(other.char_);     break;
-    case Type::kNone:
-    default:
-        assert(false);
+    case Type::kNone   :
+    default            : assert(false);
     }
 }
 
@@ -137,5 +134,26 @@ void Variant::set(uint8_t value)     { destroy(); type_ = Type::kUint8;  ::new (
 void Variant::set(int8_t value)      { destroy(); type_ = Type::kInt8;   ::new (std::addressof(int8_t_))int8_t(value);                 }
 void Variant::set(bool value)        { destroy(); type_ = Type::kBool;   ::new (std::addressof(bool_))bool(value);                     }
 void Variant::set(char value)        { destroy(); type_ = Type::kChar;   ::new (std::addressof(char_))char(value);                     }
+
+std::size_t Variant::hash::operator()(const Variant &v) const {
+    const auto type_hash = std::hash<std::size_t>{}(static_cast<std::size_t>(v.type_));
+    switch (v.type_) {
+    case Type::kString : return type_hash ^ std::hash<std::string>{}(v.string_);
+    case Type::kDouble : return type_hash ^ std::hash<double>{}(v.double_);
+    case Type::kFloat  : return type_hash ^ std::hash<float>{}(v.float_);
+    case Type::kUint64 : return type_hash ^ std::hash<uint64_t>{}(v.uint64_t_);
+    case Type::kInt64  : return type_hash ^ std::hash<int64_t>{}(v.int64_t_);
+    case Type::kUint32 : return type_hash ^ std::hash<uint32_t>{}(v.uint32_t_);
+    case Type::kInt32  : return type_hash ^ std::hash<int32_t>{}(v.int32_t_);
+    case Type::KUint16 : return type_hash ^ std::hash<uint16_t>{}(v.uint16_t_);
+    case Type::KInt16  : return type_hash ^ std::hash<int16_t>{}(v.int16_t_);
+    case Type::kUint8  : return type_hash ^ std::hash<uint8_t>{}(v.uint8_t_);
+    case Type::kInt8   : return type_hash ^ std::hash<int8_t>{}(v.int8_t_);
+    case Type::kBool   : return type_hash ^ std::hash<bool>{}(v.bool_);
+    case Type::kChar   : return type_hash ^ std::hash<char>{}(v.char_);
+    case Type::kNone   :
+    default            : assert(false);
+    }
+}
 
 } // namespace argparse

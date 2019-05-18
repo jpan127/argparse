@@ -4,6 +4,7 @@
 #include "utilities.h"
 using namespace argparse;
 
+/// Tests that values are set to the default value if provided
 TEST_CASE("DefaultValue", "Parsing") {
     Parser p;
     replace_exit_cb(p);
