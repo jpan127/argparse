@@ -4,7 +4,9 @@
 #include <unordered_map>
 #include <vector>
 
-/// Wrapper / interface over two maps
+namespace argparse {
+
+/// Wrapper / interface over a map of parsed arguments
 class Args {
     using Values = std::vector<std::string>;
 
@@ -24,3 +26,5 @@ class Args {
   private:
     std::unordered_map<std::string, Values> string_map_;
 };
+
+} // namespace argparse

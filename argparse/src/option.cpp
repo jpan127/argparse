@@ -142,7 +142,7 @@ bool Option::set_dispatch_helper(const T &s) {
     case Type::kInt8   : return set_helper<int8_t>(s);
     case Type::kBool   : return set_helper<bool>(s);
     case Type::kChar   : return set_helper<char>(s);
-    default                     : assert(false);
+    default            : assert(false);
     }
 
     return false;

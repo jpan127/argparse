@@ -4,6 +4,7 @@
 #include "utilities.h"
 using namespace argparse;
 
+/// Tests parsing of positional arguments
 TEST_CASE("PositionalArguments", "Parsing") {
     Parser p;
     replace_exit_cb(p);
@@ -69,6 +70,7 @@ TEST_CASE("PositionalArguments", "Parsing") {
     }
 }
 
+/// Tests parsing of positional arguments of subparsers
 TEST_CASE("PositionalSubparser", "Parsing") {
     Parser p;
     replace_exit_cb(p);

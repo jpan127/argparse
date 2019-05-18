@@ -2,14 +2,12 @@
 
 #include "std_optional.h"
 
-#include <limits>
-#include <memory>
 #include <string>
-#include <type_traits>
 
 namespace argparse {
 namespace detail {
 
+/// These are overloads for converting from fundamental types to string, and vice versa
 /// Unspecialized conversion helper
 template <typename OutputType, typename InputType>
 OutputType convert_helper(const InputType &input);

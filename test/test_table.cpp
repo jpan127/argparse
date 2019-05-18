@@ -1,7 +1,9 @@
 #include "catch.hpp"
 
 #include "table.h"
+using namespace argparse;
 
+/// Tests creating a small table with center alignment
 TEST_CASE("CenterAlignment", "Table") {
     static constexpr char kExpected[] =
         "--------------------\n"
@@ -15,6 +17,7 @@ TEST_CASE("CenterAlignment", "Table") {
     REQUIRE(table.display() == std::string(kExpected));
 }
 
+/// Tests creating a small table with left alignment
 TEST_CASE("LeftAlignment", "Table") {
     static constexpr char kExpected[] =
         "--------------------\n"
@@ -28,6 +31,7 @@ TEST_CASE("LeftAlignment", "Table") {
     REQUIRE(table.display() == std::string(kExpected));
 }
 
+/// Tests creating a small table with right alignment
 TEST_CASE("RightAlignment", "Table") {
     static constexpr char kExpected[] =
         "--------------------\n"
@@ -41,6 +45,7 @@ TEST_CASE("RightAlignment", "Table") {
     REQUIRE(table.display() == std::string(kExpected));
 }
 
+/// Tests creating a big table
 TEST_CASE("Big", "Table") {
     static constexpr char kExpected[] =
         "-----------------------------------------------------\n"

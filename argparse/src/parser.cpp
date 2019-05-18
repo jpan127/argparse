@@ -18,10 +18,6 @@ Args Parser::parse(const int argc, const char **argv) {
     return args;
 }
 
-const std::vector<std::string> &Parser::positional_args() const {
-    return positional_args_;
-}
-
 void Parser::parse_arg(Args &args, std::string &last_option, std::string &&s, bool &is_splitted_args) {
     constexpr char kSplitter[] = "--";
 

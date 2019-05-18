@@ -5,6 +5,7 @@
 #include "utilities.h"
 using namespace argparse;
 
+/// Tests parsing of normal arguments
 TEST_CASE("BasicArgument", "Parsing") {
     argparse::detail::Parser p;
 
@@ -94,6 +95,7 @@ TEST_CASE("BasicArgument", "Parsing") {
     }
 }
 
+/// Tests parsing of remaining arguments
 TEST_CASE("RemainingArguments", "Parsing") {
     Parser p("Sample Program", "Testing...");
     constexpr int argc = 11;
@@ -126,7 +128,8 @@ TEST_CASE("RemainingArguments", "Parsing") {
     }
 }
 
-TEST_CASE("IndividualArguments", "Parsing") {
+/// Tests the add overload for decomposed configuration parameters
+TEST_CASE("AddOverload", "Parsing") {
     constexpr int argc = 3;
     const char *argv[] = {
         "path",
@@ -142,6 +145,7 @@ TEST_CASE("IndividualArguments", "Parsing") {
     REQUIRE(my_name->value() == "JP");
 }
 
+/// Tests parsing of name vs letter
 TEST_CASE("Letter", "Parsing") {
     Parser p;
 

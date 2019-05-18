@@ -8,6 +8,7 @@
 namespace argparse {
 namespace detail {
 
+/// Handles the parsing of the input arguments at a lower level
 class Parser {
   public:
     /// Map key string for the remaining / splitted arguments
@@ -18,7 +19,9 @@ class Parser {
     Args parse(const int argc, const char **argv);
 
     /// \return The parsed positional arguments
-    const std::vector<std::string> &positional_args() const;
+    const std::vector<std::string> &positional_args() const {
+        return positional_args_;
+    }
 
   private:
     /// Positional arguments are the arguments that are before other options

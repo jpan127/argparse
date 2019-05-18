@@ -4,6 +4,7 @@
 #include "utilities.h"
 using namespace argparse;
 
+/// Tests parsing of all supported types
 TEST_CASE("AllTypes", "Parsing") {
     Parser p;
     replace_exit_cb(p);

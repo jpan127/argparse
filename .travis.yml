@@ -16,12 +16,12 @@ addons:
       - clang-tidy-8
 
 before_install:
-  - chmod +x build.sh
-  - chmod +x tidy.sh
+  - chmod +x build.bash
+  - chmod +x tidy.bash
 
 script:
   - export CXX=/usr/bin/clang++-8
   - $CXX --version
   - clang-tidy-8 --version
-  - bash ./build.sh
-  - bash ./tidy.sh
+  - ./build.bash
+  - ./tidy.bash
