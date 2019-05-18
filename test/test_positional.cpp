@@ -68,3 +68,64 @@ TEST_CASE("PositionalArguments", "Parsing") {
         REQUIRE("gzip" == compression->value());
     }
 }
+
+TEST_CASE("PositionalSubparser", "Parsing") {
+    Parser p;
+    replace_exit_cb(p);
+
+    auto &subparsers = p.add_subparser("mode", {"write", "read", "append"});
+
+    auto &write = subparsers["write"];
+    auto &read = subparsers["read"];
+    auto &append = subparsers["append"];
+
+    const auto &output_path = write.add_leading_positional<std::string>({.name = "output_path"});
+    const auto &read_input_path = read.add_leading_positional<std::string>({.name = "read_input_path"});
+    const auto &append_input_path = append.add_leading_positional<std::string>({.name = "append_input_path"});
+    const auto &append_data = append.add_leading_positional<std::string>({.name = "append_data"});
+
+    const auto &permissions = p.add<std::string>({.name = "permissions"});
+    const auto &compression = p.add<std::string>({.name = "compression"});
+
+    SECTION("write") {
+        constexpr int argc = 5;
+        const char *argv[argc] = {
+            "path",
+            "write",
+            "~/test",
+            "--permissions",
+            "+x",
+        };
+
+        p.parse(argc, argv);
+
+        REQUIRE(output_path->has_value());
+        REQUIRE(!read_input_path->has_value());
+        REQUIRE(!append_input_path->has_value());
+        REQUIRE(!append_data->has_value());
+
+        REQUIRE(output_path->value() == "~/test");
+    }
+
+    SECTION("append") {
+        constexpr int argc = 6;
+        const char *argv[argc] = {
+            "path",
+            "append",
+            "/tmp/my/data",
+            "some_data_some_data_some_data_some_data_some_data_some_data",
+            "--compression",
+            "gzip",
+        };
+
+        p.parse(argc, argv);
+
+        REQUIRE(!output_path->has_value());
+        REQUIRE(!read_input_path->has_value());
+        REQUIRE(append_input_path->has_value());
+        REQUIRE(append_data->has_value());
+
+        REQUIRE(append_input_path->value() == "/tmp/my/data");
+        REQUIRE(append_data->value() == "some_data_some_data_some_data_some_data_some_data_some_data");
+    }
+}

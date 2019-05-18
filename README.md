@@ -9,6 +9,15 @@ A C++14 compliant command line parser.
 - Default values for a specific option
 - Subparsing, various parsers that depend on the value of a preceding option
 
-master: [![Build Status](https://travis-ci.org/jpan127/argparse.svg?branch=master)](https://travis-ci.org/jpan127/argparse)
+# Build Status
 
-feature: [![Build Status](https://travis-ci.org/jpan127/argparse.svg?branch=feature)](https://travis-ci.org/jpan127/argparse)
+Branch  | Build Status
+------- | -------
+master  | [![Build Status](https://travis-ci.org/jpan127/argparse.svg?branch=master)](https://travis-ci.org/jpan127/argparse)
+feature | [![Build Status](https://travis-ci.org/jpan127/argparse.svg?branch=feature)](https://travis-ci.org/jpan127/argparse)
+
+# Supported Compilers
+
+OS     | Compiler
+------ | ------
+Linux  | Clang 8.X
