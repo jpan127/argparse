@@ -1,6 +1,7 @@
 #include "options.h"
 
 #include <memory>
+#include <sstream>
 
 namespace argparse {
 

@@ -9,6 +9,7 @@
 #include <cassert>
 #include <cstdio>
 #include <iostream>
+#include <sstream>
 
 namespace argparse {
 
@@ -58,7 +59,7 @@ Parser::~Parser() = default;
 
 template <typename T>
 ConstPlaceHolder<std::vector<T>> Parser::add_multivalent(Config<T> config) {
-    static_assert(detail::acceptable<T>(), "Must be a valid type");
+    static_assert(supported<T>(), "Must be a valid type");
 
     // Check and update name
     validate<T>(config);
@@ -68,7 +69,7 @@ ConstPlaceHolder<std::vector<T>> Parser::add_multivalent(Config<T> config) {
 
 template <typename T>
 ConstPlaceHolder<T> Parser::add(Config<T> config) {
-    static_assert(detail::acceptable<T>(), "Must be a valid type");
+    static_assert(supported<T>(), "Must be a valid type");
 
     // Check and update name
     validate<T>(config);
@@ -78,12 +79,12 @@ ConstPlaceHolder<T> Parser::add(Config<T> config) {
 
 template <typename T>
 ConstPlaceHolder<T> Parser::add(std::string name, // NOLINT(performance-unnecessary-value-param)
-                        std::string help,         // NOLINT(performance-unnecessary-value-param)
-                        const char letter,
-                        const bool required,
-                        pstd::optional<T> default_value,
-                        std::unordered_set<T> allowed_values) {
-    static_assert(detail::acceptable<T>(), "Must be a valid type");
+                                std::string help, // NOLINT(performance-unnecessary-value-param)
+                                const char letter,
+                                const bool required,
+                                pstd::optional<T> default_value,
+                                std::unordered_set<T> allowed_values) {
+    static_assert(supported<T>(), "Must be a valid type");
 
     Config<T> config{
         .name = std::move(name),
@@ -102,7 +103,7 @@ ConstPlaceHolder<T> Parser::add(std::string name, // NOLINT(performance-unnecess
 
 template <typename T>
 ConstPlaceHolder<T> Parser::add_leading_positional(Config<T> config) {
-    static_assert(detail::acceptable<T>(), "Must be a valid type");
+    static_assert(supported<T>(), "Must be a valid type");
 
     // Check and update name
     validate<T>(config);
@@ -303,7 +304,7 @@ void Parser::cross_check(Args &&args) {
         }
 
         // Boolean parameter just checks if the flag exists or not
-        if (option->type() == Variant::Type::kBool) {
+        if (option->type() == Type::kBool) {
             if (!option->set("true")) {
                 cbs_.invalid(name, {"true"});
                 any_invalid = true;
