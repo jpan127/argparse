@@ -1,18 +1,14 @@
 #pragma once
 
-#include "std_variant.h"
+#include "type.h"
 
 #include <cassert>
-#include <ostream>
-#include <sstream>
-#include <unordered_set>
+#include <string>
 
 namespace argparse {
 
-namespace detail {
-
 template <typename T>
-constexpr bool acceptable() {
+constexpr bool supported() {
     if (std::is_same<T, std::string>::value) {
         return true;
     }
@@ -20,159 +16,139 @@ constexpr bool acceptable() {
     return std::is_fundamental<T>::value;
 }
 
-} // namespace detail
-
 class Variant {
   public:
-    enum Type {
-        kString, /// std::string
-        kDouble, /// double
-        kFloat,  /// float
-        kUint64, /// uint64_t
-        kInt64,  /// int64_t
-        kUint32, /// uint32_t
-        kInt32,  /// int32_t
-        KUint16, /// uint16_t
-        KInt16,  /// int16_t
-        kUint8,  /// uint8_t
-        kInt8,   /// int8_t
-        kBool,   /// bool
-        kChar,   /// char
-        kVariantsSize,
-    };
+    /// Instantiate a constructor, as it is implicitly deleted
+    Variant();
 
-    using V = pstd::variant<
-        std::string, /// kString
-        double,      /// kDouble
-        float,       /// kFloat
-        uint64_t,    /// kUint64
-        int64_t,     /// kInt64
-        uint32_t,    /// kUint32
-        int32_t,     /// kInt32
-        uint16_t,    /// KUint16
-        int16_t,     /// KInt16
-        uint8_t,     /// kUint8
-        int8_t,      /// kInt8
-        bool,        /// kBool
-        char         /// kChar
-    >;
+    /// Destructor must explicitly destruct std::string if that is constructed
+    ~Variant();
 
-    static_assert(kVariantsSize == pstd::variant_size_v<V>, "");
-
-    template <typename T, typename X = std::enable_if_t<std::is_same<T, Variant>::value, void>>
-    explicit Variant(T &&value) : value_(std::forward<T>(value)) {
-    }
-
+    /// Any constructor type, but bounded by valid union types
     template <typename T>
-    explicit Variant(const T &value) : value_(value) {
+    explicit Variant (T value) { // NOLINT
+        set(value);
     }
 
-    friend std::ostream &operator<<(std::ostream &stream, Variant &variant) {
-        stream << variant.string();
-        return stream;
+    /// All of these copy the other variant
+    Variant(const Variant &other);
+    Variant(Variant &&other) noexcept;
+    Variant &operator=(const Variant &other);
+    Variant &operator=(Variant &&other) noexcept;
+
+    /// Any assignment operator, but bounded by valid union types
+    template <typename T>
+    Variant &operator=(T value) {
+        set(value);
+        return *this;
     }
 
-    static const char *enum_to_str(const Type type) {
-        switch (type) {
-        case kString : return "std::string";
-        case kDouble : return "double";
-        case kFloat  : return "float";
-        case kUint64 : return "uint64_t";
-        case kInt64  : return "int64_t";
-        case kUint32 : return "uint32_t";
-        case kInt32  : return "int32_t";
-        case KUint16 : return "uint16_t";
-        case KInt16  : return "int16_t";
-        case kUint8  : return "uint8_t";
-        case kInt8   : return "int8_t";
-        case kBool   : return "bool";
-        case kChar   : return "char";
-        default      : assert(false);
+    /// Converts the current value into a string
+    std::string string() const;
+
+    /// Visitor method
+    template <typename Visitor>
+    decltype(auto) visit(Visitor &&visitor) {
+        switch (type_) {
+        case Type::kString : return visitor(string_);
+        case Type::kDouble : return visitor(double_);
+        case Type::kFloat  : return visitor(float_);
+        case Type::kUint64 : return visitor(uint64_t_);
+        case Type::kInt64  : return visitor(int64_t_);
+        case Type::kUint32 : return visitor(uint32_t_);
+        case Type::kInt32  : return visitor(int32_t_);
+        case Type::KUint16 : return visitor(uint16_t_);
+        case Type::KInt16  : return visitor(int16_t_);
+        case Type::kUint8  : return visitor(uint8_t_);
+        case Type::kInt8   : return visitor(int8_t_);
+        case Type::kBool   : return visitor(bool_);
+        case Type::kChar   : return visitor(char_);
+        case Type::kNone:
+        default:
+            assert(false);
         }
-
-        return nullptr;
-    }
-
-    struct Visitor {
-        template <typename T>
-        std::string operator()(const T &value) const {
-            std::stringstream ss;
-            ss << value;
-            return ss.str();
-        }
-    };
-    std::string string() const {
-        return pstd::visit(Visitor{}, value_);
-    }
-
-    template <typename T>
-    T &get() {
-        return pstd::get<T>(value_);
-    }
-
-    template <std::size_t Index>
-    auto &get() {
-        return pstd::get<Index>(value_);
-    }
-
-    template <typename T>
-    const T &get() const {
-        return pstd::get<T>(value_);
-    }
-
-    template <std::size_t Index>
-    const auto &get() const {
-        return pstd::get<Index>(value_);
     }
 
     struct hash {
-        std::size_t operator()(const argparse::Variant &v) const {
-            return std::hash<V>{}(v.value_);
+        std::size_t operator()(const Variant &v) const {
+            const auto type_hash = std::hash<std::size_t>{}(static_cast<std::size_t>(v.type_));
+            switch (v.type_) {
+            case Type::kString : return type_hash ^ std::hash<std::string>{}(v.string_);
+            case Type::kDouble : return type_hash ^ std::hash<double>{}(v.double_);
+            case Type::kFloat  : return type_hash ^ std::hash<float>{}(v.float_);
+            case Type::kUint64 : return type_hash ^ std::hash<uint64_t>{}(v.uint64_t_);
+            case Type::kInt64  : return type_hash ^ std::hash<int64_t>{}(v.int64_t_);
+            case Type::kUint32 : return type_hash ^ std::hash<uint32_t>{}(v.uint32_t_);
+            case Type::kInt32  : return type_hash ^ std::hash<int32_t>{}(v.int32_t_);
+            case Type::KUint16 : return type_hash ^ std::hash<uint16_t>{}(v.uint16_t_);
+            case Type::KInt16  : return type_hash ^ std::hash<int16_t>{}(v.int16_t_);
+            case Type::kUint8  : return type_hash ^ std::hash<uint8_t>{}(v.uint8_t_);
+            case Type::kInt8   : return type_hash ^ std::hash<int8_t>{}(v.int8_t_);
+            case Type::kBool   : return type_hash ^ std::hash<bool>{}(v.bool_);
+            case Type::kChar   : return type_hash ^ std::hash<char>{}(v.char_);
+            case Type::kNone:
+            default:
+                assert(false);
+            }
         }
     };
 
-    bool operator==(const argparse::Variant &other) const {
-        return value_ == other.value_;
-    }
+    bool operator==(const Variant &other) const;
+    bool operator==(const std::string &value) const;
+    bool operator==(const double &value) const;
+    bool operator==(const float &value) const;
+    bool operator==(const uint64_t &value) const;
+    bool operator==(const int64_t &value) const;
+    bool operator==(const uint32_t &value) const;
+    bool operator==(const int32_t &value) const;
+    bool operator==(const uint16_t &value) const;
+    bool operator==(const int16_t &value) const;
+    bool operator==(const uint8_t &value) const;
+    bool operator==(const int8_t &value) const;
+    bool operator==(const bool &value) const;
+    bool operator==(const char &value) const;
 
   private:
-    V value_;
+    /// Which type is currently constructed
+    Type type_ = Type::kNone;
+
+    /// Tagged union
+    union {
+        std::string string_;
+        double double_;
+        float float_;
+        uint64_t uint64_t_;
+        int64_t int64_t_;
+        uint32_t uint32_t_;
+        int32_t int32_t_;
+        uint16_t uint16_t_;
+        int16_t int16_t_;
+        uint8_t uint8_t_;
+        int8_t int8_t_;
+        bool bool_;
+        char char_;
+    };
+
+    void copy(const Variant &other);
+
+    /// Only std::string needs a destructor, so destruct it when it is going out of scope
+    void destroy();
+
+    /// Calls any destructors, sets the tag, then placement new's the new value
+    void set(const char *value);
+    void set(std::string value);
+    void set(double value);
+    void set(float value);
+    void set(uint64_t value);
+    void set(int64_t value);
+    void set(uint32_t value);
+    void set(int32_t value);
+    void set(uint16_t value);
+    void set(int16_t value);
+    void set(uint8_t value);
+    void set(int8_t value);
+    void set(bool value);
+    void set(char value);
 };
-
-namespace detail {
-
-/// @{ Converts a type to enum
-template <typename T> constexpr Variant::Type deduce_variant();
-template <> constexpr Variant::Type deduce_variant<std::string>() { return Variant::Type::kString; }
-template <> constexpr Variant::Type deduce_variant<double>() { return Variant::Type::kDouble; }
-template <> constexpr Variant::Type deduce_variant<float>() { return Variant::Type::kFloat; }
-template <> constexpr Variant::Type deduce_variant<uint64_t>() { return Variant::Type::kUint64; }
-template <> constexpr Variant::Type deduce_variant<int64_t>() { return Variant::Type::kInt64; }
-template <> constexpr Variant::Type deduce_variant<uint32_t>() { return Variant::Type::kUint32; }
-template <> constexpr Variant::Type deduce_variant<int32_t>() { return Variant::Type::kInt32; }
-template <> constexpr Variant::Type deduce_variant<uint16_t>() { return Variant::Type::KUint16; }
-template <> constexpr Variant::Type deduce_variant<int16_t>() { return Variant::Type::KInt16; }
-template <> constexpr Variant::Type deduce_variant<uint8_t>() { return Variant::Type::kUint8; }
-template <> constexpr Variant::Type deduce_variant<int8_t>() { return Variant::Type::kInt8; }
-template <> constexpr Variant::Type deduce_variant<bool>() { return Variant::Type::kBool; }
-template <> constexpr Variant::Type deduce_variant<char>() { return Variant::Type::kChar; }
-/// @}
-
-/// Creates a variant given the initial value
-template <typename T>
-Variant make_variant(const T &default_value) {
-    return Variant{default_value};
-}
-
-template <typename T>
-std::unordered_set<Variant, Variant::hash> make_variants(const std::unordered_set<T> &in) {
-    std::unordered_set<Variant, Variant::hash> out;
-    for (const auto &value : in) {
-        out.insert(make_variant(value));
-    }
-    return out;
-}
-
-} // namespace detail
 
 } // namespace argparse

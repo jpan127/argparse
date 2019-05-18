@@ -1,8 +1,0 @@
-#pragma once
-
-#include "mpark/variant.hpp"
-
-/// Set the mpark namespace to a name that denotes its relation to the standard
-namespace pstd {
-using namespace mpark;
-} // namespace pstd

@@ -33,13 +33,13 @@ class Option {
     bool set(const std::vector<std::string> &s);
 
     const std::string &name() const noexcept { return name_; }
-    Variant::Type type() const noexcept { return type_; }
+    Type type() const noexcept { return type_; }
     bool required() const noexcept { return required_; }
     bool multivalent() const noexcept { return multivalent_; }
     bool positional() const noexcept { return positional_; }
 
   private:
-    const Variant::Type type_;
+    const Type type_;
     const pstd::optional<Variant> default_value_;
     const std::unordered_set<Variant, Variant::hash> allowed_values_;
     const std::string name_;

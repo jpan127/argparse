@@ -4,6 +4,7 @@ SUPRESSED_CHECKS="\
 -cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
 -cppcoreguidelines-pro-bounds-constant-array-index,\
 -cppcoreguidelines-pro-bounds-pointer-arithmetic,\
+-cppcoreguidelines-pro-type-union-access,\
 -cppcoreguidelines-pro-type-vararg,\
 -fuchsia-default-arguments,\
 -fuchsia-overloaded-operator,\

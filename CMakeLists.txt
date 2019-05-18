@@ -10,7 +10,7 @@ include_directories(
 
 # Flags
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++") # -ggdb3 -O0
 
 # Shared library
 add_library(argparse SHARED
@@ -18,6 +18,7 @@ add_library(argparse SHARED
     argparse/src/option.cpp
     argparse/src/options.cpp
     argparse/src/parser.cpp
+    argparse/src/variant.cpp
 )
 
 # Sample
