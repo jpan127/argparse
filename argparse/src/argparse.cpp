@@ -164,7 +164,7 @@ const std::vector<std::string> &Parser::parse(const int argc, const char **argv)
 }
 
 std::unordered_map<std::string, Parser> &Parser::add_subparser(std::string &&group,
-                                                       std::unordered_set<std::string> &&allowed_values) {
+                                                               std::unordered_set<std::string> &&allowed_values) {
     if (subparser_.has_value()) {
         log_error("Can only register one subparser per parser");
         cbs_.exit();

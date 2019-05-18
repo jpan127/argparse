@@ -1,4 +1,7 @@
 #!/bin/sh
+
+set -e
+
 SUPRESSED_CHECKS="\
 -cppcoreguidelines-avoid-c-arrays,\
 -cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
@@ -44,3 +47,7 @@ $CLANG_TIDY_PATH                              \
     -Imodules/optional                        \
     -Iargparse/include                        \
     -Imodules/catch2
+
+echo "--------------------"
+echo "|    All Tidied    |"
+echo "--------------------"

@@ -24,3 +24,4 @@ script:
   - $CXX --version
   - clang-tidy-8 --version
   - bash ./build.sh
+  - bash ./tidy.sh

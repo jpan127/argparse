@@ -4,10 +4,7 @@
 
 using namespace argparse;
 
-int main(int argc, char const *argv[])
-{
-    constexpr uint64_t kDefaultVerboseLevel = 5;
-
+int main(int argc, char const *argv[]) {
     try {
         // Create parser
         Parser p("Sample Program", "Testing...");
@@ -27,7 +24,7 @@ int main(int argc, char const *argv[])
 
         // Add non-positional arguments
         const auto verbose = p.add<uint64_t>({
-            .default_value = kDefaultVerboseLevel,
+            .default_value = 5,
             .name = "verbose",
         });
         const auto id = p.add<int64_t>({
