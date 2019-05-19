@@ -33,20 +33,15 @@ elif [[ "$OSTYPE" == "linux-gnu" ]]; then
     EXTRA_FLAGS=""
 fi
 
-$CLANG_TIDY_PATH                              \
-    -checks=*,$SUPRESSED_CHECKS               \
-    --warnings-as-errors=*,$SUPRESSED_CHECKS  \
-    -quiet                                    \
-    -header-filter=argparse/include/          \
-    argparse/src/*.cpp                        \
-    --                                        \
-    -std=c++14                                \
-    $STDLIB                                   \
-    $EXTRA_FLAGS                              \
-    -Imodules/variant/include                 \
-    -Imodules/optional                        \
-    -Iargparse/include                        \
-    -Imodules/catch2
+# Compiler flags
+FLAGS="-std=c++14 $STDLIB $EXTRA_FLAGS -Imodules/optional -Iargparse/include -Imodules/catch2"
+
+# Run clang-tidy
+python3 runtidy.py                    \
+    --checks=*,$SUPRESSED_CHECKS      \
+    --header-filter=argparse/include/ \
+    --cxxflags="$FLAGS"               \
+    argparse/src/*.cpp
 
 echo "--------------------"
 echo "|    All Tidied    |"
