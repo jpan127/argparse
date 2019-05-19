@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <sstream>
+#include <iostream>
 
 namespace argparse {
 
@@ -35,7 +36,7 @@ std::string Options::usage_string() const {
 }
 
 std::string Options::display_string() const {
-    OptionTable table({{"Required", "Name", "Type", "Default", "Help", "Allowed Values"}});
+    OptionTable table({{"Required", "Name", "Letter", "Type", "Default", "Help", "Allowed Values"}});
 
     for (const auto &pair : options_) {
         const auto &option = pair.second;
@@ -46,9 +47,20 @@ std::string Options::display_string() const {
 }
 
 std::shared_ptr<Option> Options::get(const std::string &name) {
-    const auto iterator = options_.find(name);
-    if (iterator != options_.end()) {
-        return iterator->second;
+    const bool is_letter = (name.length() == 1);
+
+    if (is_letter) {
+        for (const auto &pair : options_) {
+            const auto &option = pair.second;
+            if (option->letter() == name[0]) {
+                return option;
+            }
+        }
+    } else {
+        const auto iterator = options_.find(name);
+        if (iterator != options_.end()) {
+            return iterator->second;
+        }
     }
 
     return nullptr;
@@ -71,21 +83,12 @@ Options::NameLetterVector Options::check_requirements(const std::unordered_set<s
 
 template <typename T, typename PlaceholderType>
 void Options::add_helper(Config<T> &&config, PlaceholderType &placeholder) {
-    // Need to copy name as it is used on the LHS by operator[], but is moved on the RHS
-    // Order of evaluation seems to be undefined
     const auto name = config.name;
     auto option = std::make_shared<Option>(placeholder, std::forward<Config<T>>(config));
     options_[name] = option;
 
-    // If the letter is valid and different from name, also add it to the map
-    const auto letter_to_str = std::string(1, config.letter);
-    const bool should_use_letter = (config.letter != kUnusedChar) &&
-                                    (config.name   != letter_to_str);
-    if (should_use_letter) {
-        options_[letter_to_str] = option;
-    }
-
     if (config.required) {
+        const auto letter_to_str = std::string(1, config.letter);
         required_options_.push_back({name, letter_to_str});
     }
 }

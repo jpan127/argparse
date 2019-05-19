@@ -15,7 +15,7 @@ namespace argparse {
 class Option {
   public:
     /// The number of columns / fields needed to describe an option
-    static constexpr std::size_t kTableSize = 6;
+    static constexpr std::size_t kTableSize = 7;
     using OptionTable = Table<kTableSize, Alignment::Center>;
 
     /// Single Constructor
@@ -43,6 +43,7 @@ class Option {
 
     /// @{ Gets configuration details about this option
     const std::string &name() const noexcept { return name_; }
+    char letter() const noexcept { return letter_; }
     Type type() const noexcept { return type_; }
     bool required() const noexcept { return required_; }
     bool multivalent() const noexcept { return multivalent_; }
@@ -58,6 +59,7 @@ class Option {
     const std::unordered_set<Variant, Variant::hash> allowed_values_;
     const std::string name_;
     const std::string help_;
+    const char letter_;
     const bool multivalent_;
     const bool positional_;
     const bool required_;

@@ -129,16 +129,15 @@ Usage: Sample Program [mode] [path] [--verbose] [--h] [--id] [--help]
 Description: Testing...
 
 Options:
---------------------------------------------------------------------------------------------
-|Required| Name  |  Type  |Default|             Help             |     Allowed Values      |
---------------------------------------------------------------------------------------------
-|        |verbose|uint64_t|   5   |                              |                         |
-|        | help  |  bool  |   0   |      Show help message       |                         |
-|   x    | path  |  bool  |   0   |                              |                         |
-|        |  id   |int64_t |       |  some identification number  | 1234 , 9999 , 127127127 |
-|   x    | mode  | string |       |Operation mode of this program|        a , c , b        |
-|        | help  |  bool  |   0   |      Show help message       |                         |
---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+|Required| Name  |Letter|  Type  |Default|             Help             |     Allowed Values      |
+---------------------------------------------------------------------------------------------------
+|        |  id   |      |int64_t |       |  some identification number  | 1234 , 9999 , 127127127 |
+|        |verbose|      |uint64_t|   5   |                              |                         |
+|   x    | path  |      |  bool  |   0   |                              |                         |
+|   x    | mode  |      | string |       |Operation mode of this program|        a , c , b        |
+|        | help  |  h   |  bool  |   0   |      Show help message       |                         |
+---------------------------------------------------------------------------------------------------
 ```
 
 ## Subparsers
