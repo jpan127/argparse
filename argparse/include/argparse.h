@@ -73,8 +73,8 @@ class Parser {
     /// Non const inputs are moved
     /// All parameters are composed into a Config<T>
     template <typename T>
-    ConstPlaceHolder<T> add(std::string name, // NOLINT(performance-unnecessary-value-param)
-                            std::string help, // NOLINT(performance-unnecessary-value-param)
+    ConstPlaceHolder<T> add(std::string name,
+                            std::string help,
                             const char letter = kUnusedChar,
                             const bool required = false,
                             pstd::optional<T> default_value = T{},
