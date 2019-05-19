@@ -117,10 +117,8 @@ ConstPlaceHolder<T> Parser::add_leading_positional(Config<T> config) {
 
     // All leading positional arguments are required, otherwise the positions invalidates others
     config.required = true;
-    config.positional = true;
-    auto placeholder = options_->add<T>(std::move(config));
 
-    return placeholder;
+    return options_->add<T>(std::move(config), positionals_.size());
 }
 
 void Parser::set_callbacks(Callbacks &&cbs) {

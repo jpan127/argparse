@@ -38,17 +38,17 @@ std::unordered_set<Variant, Variant::hash> make_variants(const std::unordered_se
 } // namespace
 
 template <typename T>
-Option::Option(const PlaceHolder<T> &placeholder, Config<T> &&config)
+Option::Option(const PlaceHolder<T> &placeholder, Config<T> &&config, const pstd::optional<std::size_t> position)
     : type_(deduce_variant<T>()),
-        default_value_(determine_default_value(config.default_value)),
-        allowed_values_(make_variants(config.allowed_values)),
-        name_(std::move(config.name)),
-        help_(std::move(config.help)),
-        letter_(config.letter),
-        multivalent_(false),
-        positional_(config.positional),
-        required_(config.required),
-        placeholder_(placeholder) {
+      default_value_(determine_default_value(config.default_value)),
+      allowed_values_(make_variants(config.allowed_values)),
+      name_(std::move(config.name)),
+      help_(std::move(config.help)),
+      position_(position),
+      letter_(config.letter),
+      multivalent_(false),
+      required_(config.required),
+      placeholder_(placeholder) {
 
     assert(placeholder_);
 
@@ -61,17 +61,17 @@ Option::Option(const PlaceHolder<T> &placeholder, Config<T> &&config)
 
 /// Multivalent Constructor
 template <typename T>
-Option::Option(const PlaceHolder<std::vector<T>> &placeholder, Config<T> &&config)
+Option::Option(const PlaceHolder<std::vector<T>> &placeholder, Config<T> &&config, const pstd::optional<std::size_t> position)
     : type_(deduce_variant<T>()),
-        default_value_(determine_default_value(config.default_value)),
-        allowed_values_(make_variants(config.allowed_values)),
-        name_(std::move(config.name)),
-        help_(std::move(config.help)),
-        letter_(config.letter),
-        multivalent_(true),
-        positional_(config.positional),
-        required_(config.required),
-        placeholder_(placeholder) {
+      default_value_(determine_default_value(config.default_value)),
+      allowed_values_(make_variants(config.allowed_values)),
+      name_(std::move(config.name)),
+      help_(std::move(config.help)),
+      position_(position),
+      letter_(config.letter),
+      multivalent_(true),
+      required_(config.required),
+      placeholder_(placeholder) {
 
     assert(placeholder_);
 
@@ -101,6 +101,7 @@ Option::OptionTable::Row Option::to_string() const {
 
     return {{
         required_ ? "x" : " ",
+        position_.has_value() ? std::to_string(position_.value()) : "",
         name_,
         (letter_ == kUnusedChar) ? "" : std::string(1, letter_),
         enum_to_str(type_),
@@ -195,32 +196,32 @@ bool Option::set_helper(const std::vector<std::string> &s) {
 }
 
 /// @{ Explicit Instantiation
-template Option::Option(const PlaceHolder<std::string> &placeholder, Config<std::string> &&);
-template Option::Option(const PlaceHolder<double> &placeholder, Config<double> &&);
-template Option::Option(const PlaceHolder<float> &placeholder, Config<float> &&);
-template Option::Option(const PlaceHolder<uint64_t> &placeholder, Config<uint64_t> &&);
-template Option::Option(const PlaceHolder<int64_t> &placeholder, Config<int64_t> &&);
-template Option::Option(const PlaceHolder<uint32_t> &placeholder, Config<uint32_t> &&);
-template Option::Option(const PlaceHolder<int32_t> &placeholder, Config<int32_t> &&);
-template Option::Option(const PlaceHolder<uint16_t> &placeholder, Config<uint16_t> &&);
-template Option::Option(const PlaceHolder<int16_t> &placeholder, Config<int16_t> &&);
-template Option::Option(const PlaceHolder<uint8_t> &placeholder, Config<uint8_t> &&);
-template Option::Option(const PlaceHolder<int8_t> &placeholder, Config<int8_t> &&);
-template Option::Option(const PlaceHolder<bool> &placeholder, Config<bool> &&);
-template Option::Option(const PlaceHolder<char> &placeholder, Config<char> &&);
-template Option::Option(const PlaceHolder<std::vector<std::string>> &placeholder, Config<std::string> &&);
-template Option::Option(const PlaceHolder<std::vector<double>> &placeholder, Config<double> &&);
-template Option::Option(const PlaceHolder<std::vector<float>> &placeholder, Config<float> &&);
-template Option::Option(const PlaceHolder<std::vector<uint64_t>> &placeholder, Config<uint64_t> &&);
-template Option::Option(const PlaceHolder<std::vector<int64_t>> &placeholder, Config<int64_t> &&);
-template Option::Option(const PlaceHolder<std::vector<uint32_t>> &placeholder, Config<uint32_t> &&);
-template Option::Option(const PlaceHolder<std::vector<int32_t>> &placeholder, Config<int32_t> &&);
-template Option::Option(const PlaceHolder<std::vector<uint16_t>> &placeholder, Config<uint16_t> &&);
-template Option::Option(const PlaceHolder<std::vector<int16_t>> &placeholder, Config<int16_t> &&);
-template Option::Option(const PlaceHolder<std::vector<uint8_t>> &placeholder, Config<uint8_t> &&);
-template Option::Option(const PlaceHolder<std::vector<int8_t>> &placeholder, Config<int8_t> &&);
-template Option::Option(const PlaceHolder<std::vector<bool>> &placeholder, Config<bool> &&);
-template Option::Option(const PlaceHolder<std::vector<char>> &placeholder, Config<char> &&);
+template Option::Option(const PlaceHolder<std::string> &placeholder, Config<std::string> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<double> &placeholder, Config<double> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<float> &placeholder, Config<float> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<uint64_t> &placeholder, Config<uint64_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<int64_t> &placeholder, Config<int64_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<uint32_t> &placeholder, Config<uint32_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<int32_t> &placeholder, Config<int32_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<uint16_t> &placeholder, Config<uint16_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<int16_t> &placeholder, Config<int16_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<uint8_t> &placeholder, Config<uint8_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<int8_t> &placeholder, Config<int8_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<bool> &placeholder, Config<bool> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<char> &placeholder, Config<char> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<std::string>> &placeholder, Config<std::string> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<double>> &placeholder, Config<double> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<float>> &placeholder, Config<float> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<uint64_t>> &placeholder, Config<uint64_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<int64_t>> &placeholder, Config<int64_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<uint32_t>> &placeholder, Config<uint32_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<int32_t>> &placeholder, Config<int32_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<uint16_t>> &placeholder, Config<uint16_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<int16_t>> &placeholder, Config<int16_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<uint8_t>> &placeholder, Config<uint8_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<int8_t>> &placeholder, Config<int8_t> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<bool>> &placeholder, Config<bool> &&, const pstd::optional<std::size_t>);
+template Option::Option(const PlaceHolder<std::vector<char>> &placeholder, Config<char> &&, const pstd::optional<std::size_t>);
 /// @}
 
 } // namespace argparse

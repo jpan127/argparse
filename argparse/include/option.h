@@ -15,20 +15,20 @@ namespace argparse {
 class Option {
   public:
     /// The number of columns / fields needed to describe an option
-    static constexpr std::size_t kTableSize = 7;
+    static constexpr std::size_t kTableSize = 8;
     using OptionTable = Table<kTableSize, Alignment::Center>;
 
     /// Single Constructor
     /// \param placeholder Placeholder pointer to a previously allocated object, the value will be populated later
     /// \param config Configuration for the option
     template <typename T>
-    Option(const PlaceHolder<T> &placeholder, Config<T> &&config);
+    Option(const PlaceHolder<T> &placeholder, Config<T> &&config, const pstd::optional<std::size_t> position);
 
     /// Multivalent Constructor
     /// \param placeholder Placeholder pointer to a previously allocated object, the value will be populated later
     /// \param config Configuration for the option
     template <typename T>
-    Option(const PlaceHolder<std::vector<T>> &placeholder, Config<T> &&config);
+    Option(const PlaceHolder<std::vector<T>> &placeholder, Config<T> &&config, const pstd::optional<std::size_t> position);
 
     /// Populates a row of string information about this option
     OptionTable::Row to_string() const;
@@ -47,7 +47,7 @@ class Option {
     Type type() const noexcept { return type_; }
     bool required() const noexcept { return required_; }
     bool multivalent() const noexcept { return multivalent_; }
-    bool positional() const noexcept { return positional_; }
+    bool positional() const noexcept { return position_.has_value(); }
     /// @}
 
   private:
@@ -59,9 +59,9 @@ class Option {
     const std::unordered_set<Variant, Variant::hash> allowed_values_;
     const std::string name_;
     const std::string help_;
+    const pstd::optional<std::size_t> position_;
     const char letter_;
     const bool multivalent_;
-    const bool positional_;
     const bool required_;
     /// @}
 

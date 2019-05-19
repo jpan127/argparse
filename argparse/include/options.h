@@ -18,8 +18,10 @@ class Options {
 
     /// Add an option that can have a single value
     /// \param config Configuration for the option
+    /// \param positional
+    /// \param position
     template <typename T>
-    ConstPlaceHolder<T> add(Config<T> &&config);
+    ConstPlaceHolder<T> add(Config<T> &&config, const pstd::optional<std::size_t> position = {});
 
     /// Add an option that can have multiple values
     /// \param config Configuration for the option
@@ -52,7 +54,7 @@ class Options {
 
     /// Helper for registering an option with a configuration
     template <typename T, typename PlaceholderType>
-    void add_helper(Config<T> &&config, PlaceholderType &placeholder);
+    void add_helper(Config<T> &&config, PlaceholderType &placeholder, const pstd::optional<std::size_t> position = {});
 };
 
 } // namespace argparse
