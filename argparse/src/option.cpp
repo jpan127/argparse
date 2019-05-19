@@ -44,6 +44,7 @@ Option::Option(const PlaceHolder<T> &placeholder, Config<T> &&config)
         allowed_values_(make_variants(config.allowed_values)),
         name_(std::move(config.name)),
         help_(std::move(config.help)),
+        letter_(config.letter),
         multivalent_(false),
         positional_(config.positional),
         required_(config.required),
@@ -66,6 +67,7 @@ Option::Option(const PlaceHolder<std::vector<T>> &placeholder, Config<T> &&confi
         allowed_values_(make_variants(config.allowed_values)),
         name_(std::move(config.name)),
         help_(std::move(config.help)),
+        letter_(config.letter),
         multivalent_(true),
         positional_(config.positional),
         required_(config.required),
@@ -100,6 +102,7 @@ Option::OptionTable::Row Option::to_string() const {
     return {{
         required_ ? "x" : " ",
         name_,
+        (letter_ == kUnusedChar) ? "" : std::string(1, letter_),
         enum_to_str(type_),
         default_value_->string(),
         help_,
