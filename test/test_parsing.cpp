@@ -150,7 +150,7 @@ TEST_CASE("Letter", "Parsing") {
     Parser p;
 
     constexpr int argc = 3;
-    const char *argv[] = {
+    const char *argv[argc] = {
         "path",
         "-d",
         "Wednesday",
@@ -190,4 +190,26 @@ TEST_CASE("Letter", "Parsing") {
         REQUIRE(day->has_value());
         REQUIRE(day->value() == "Wednesday");
     }
+}
+
+/// Tests --key=value syntax
+TEST_CASE("EqualsSyntax", "Parsing") {
+    Parser p;
+
+    constexpr int argc = 3;
+    const char *argv[argc] = {
+        "path",
+        "--day=wednesday",
+        "-m=january",
+    };
+
+    const auto day = p.add<std::string>({.name = "day"});
+    const auto month = p.add<std::string>({.letter = 'm'});
+
+    p.parse(argc, argv);
+
+    REQUIRE(day->has_value());
+    REQUIRE(day->value() == "wednesday");
+    REQUIRE(month->has_value());
+    REQUIRE(month->value() == "january");
 }
