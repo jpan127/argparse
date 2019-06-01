@@ -11,17 +11,17 @@ TEST_CASE("MultivalentOption", "Parsing") {
         const char *argv[argc] = {
             "path",
             "--mode",
-            "walk",
-            "jog",
-            "skip",
-            "fly",
+            "walk,jog,skip,fly",
+            "swim",
+            "dive",
+            "wade",
         };
 
         p.parse(argc, argv);
 
         REQUIRE(mode->has_value());
         const auto &vector = mode->value();
-        REQUIRE(vector.size() == argc - 2);
+        REQUIRE(vector.size() == 7);
         REQUIRE(vector[0] == "walk");
         REQUIRE(vector[1] == "jog");
         REQUIRE(vector[2] == "skip");
@@ -56,7 +56,7 @@ TEST_CASE("MultivalentOption", "Parsing") {
         const auto &mode = p.add_multivalent<std::string>({
             .name = "mode",
             .required = true,
-            .allowed_values = {"walk", "jog", "skip", "fly"},
+            .allowed_values = {"walk", "jog", "skip", "fly", "wade", "swim", "dive"},
         });
         test(mode, p);
     }

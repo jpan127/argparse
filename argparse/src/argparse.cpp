@@ -5,6 +5,7 @@
 #include "exceptions.h"
 #include "options.h"
 #include "parser.h"
+#include "utils.h"
 #include "variant.h"
 
 #include <cassert>
@@ -132,6 +133,7 @@ void Parser::set_callbacks(Callbacks &&cbs) {
     move_if_exists(cbs.help, cbs_.help);
     move_if_exists(cbs.missing, cbs_.missing);
     move_if_exists(cbs.invalid, cbs_.invalid);
+    move_if_exists(cbs.not_allowed, cbs_.not_allowed);
 }
 
 void Parser::help() const {
@@ -327,8 +329,9 @@ void Parser::cross_check(Args &&args) {
 
         // Multivalent, set all values
         if (option->multivalent()) {
+            split_values(values);
             if (!option->set(values)) {
-                cbs_.invalid(name, values);
+                cbs_.not_allowed(name, values);
                 any_invalid = true;
             }
             continue;
@@ -341,7 +344,7 @@ void Parser::cross_check(Args &&args) {
         } else {
             // Not multivalent, only one value
             if (!option->set(values[0])) {
-                cbs_.invalid(name, {values[0]});
+                cbs_.not_allowed(name, {values[0]});
                 any_invalid = true;
             }
         }
@@ -362,7 +365,6 @@ bool Parser::check_requirements() const {
     return missings.empty();
 }
 
-/// Set the default callbacks into [cbs_]
 void Parser::set_default_callbacks() {
     cbs_.exit = [] { throw std::runtime_error("Parsing failed"); };
     cbs_.help = [] { };
@@ -377,6 +379,15 @@ void Parser::set_default_callbacks() {
         values_combined += " }";
         const char *v = values.empty() ? "???" : values_combined.c_str();
         log_error("Argument invalid : [ --", name, "=", v, "]");
+    };
+    cbs_.not_allowed = [this](const auto &name, const auto &values) {
+        std::string values_combined = "{";
+        for (const auto &value : values) {
+            values_combined += " " + value;
+        }
+        values_combined += " }";
+        const char *v = values.empty() ? "???" : values_combined.c_str();
+        log_error("Argument(s) not in allowed list : [ --", name, "=", v, "]");
     };
 }
 
