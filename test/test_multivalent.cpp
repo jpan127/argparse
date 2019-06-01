@@ -32,8 +32,11 @@ TEST_CASE("MultivalentOption", "Parsing") {
     replace_exit_cb(p);
 
     SECTION("No default value") {
-        const auto &mode = p.add_multivalent<std::string>({
+        const auto &mode = p.add_multivalent(argparse::Config<std::string>{
+            .default_value = {},
+            .allowed_values = {},
             .name = "mode",
+            .help = "",
             .required = true,
         });
         test(mode, p);
@@ -42,10 +45,12 @@ TEST_CASE("MultivalentOption", "Parsing") {
     SECTION("Yes default value") {
         Parser p;
         replace_exit_cb(p);
-        const auto &mode = p.add_multivalent<std::string>({
-            .name = "mode",
-            .required = true,
+        const auto &mode = p.add_multivalent(argparse::Config<std::string>{
             .default_value = "bounce",
+            .allowed_values = {},
+            .name = "mode",
+            .help = "",
+            .required = true,
         });
         test(mode, p);
     }
@@ -53,10 +58,12 @@ TEST_CASE("MultivalentOption", "Parsing") {
     SECTION("Allowed values") {
         Parser p;
         replace_exit_cb(p);
-        const auto &mode = p.add_multivalent<std::string>({
-            .name = "mode",
-            .required = true,
+        const auto &mode = p.add_multivalent(argparse::Config<std::string>{
+            .default_value = {},
             .allowed_values = {"walk", "jog", "skip", "fly", "wade", "swim", "dive"},
+            .name = "mode",
+            .help = "",
+            .required = true,
         });
         test(mode, p);
     }

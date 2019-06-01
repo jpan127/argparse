@@ -10,24 +10,28 @@ int main(int argc, char const *argv[]) {
         Parser p("Sample Program", "Testing...");
 
         // Add positional arguments, they are added in calling order
-        const auto mode = p.add_leading_positional<std::string>({
+        const auto mode = p.add_leading_positional(argparse::Config<std::string>{
+            .default_value = {},
             .allowed_values = {"a", "b", "c"},
             .name = "mode",
             .help = "Operation mode of this program",
         });
-        const auto path = p.add_leading_positional<bool>({
+        const auto path = p.add_leading_positional(argparse::Config<bool>{
             .default_value = false,
+            .allowed_values = {},
             .name = "path",
             .help = "",
             .required = true,
         });
 
         // Add non-positional arguments
-        const auto verbose = p.add<uint64_t>({
+        const auto verbose = p.add(argparse::Config<uint64_t>{
             .default_value = 5,
+            .allowed_values = {},
             .name = "verbose",
         });
-        const auto id = p.add<int64_t>({
+        const auto id = p.add(argparse::Config<int64_t>{
+            .default_value = {},
             .allowed_values = {1234, 9999, 127127127},
             .name = "id",
             .help = "some identification number",

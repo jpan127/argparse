@@ -9,13 +9,13 @@ TEST_CASE("PositionalArguments", "Parsing") {
     Parser p;
     replace_exit_cb(p);
 
-    const auto &mode = p.add_leading_positional<std::string>({.name = "mode"});
-    const auto &dir  = p.add_leading_positional<std::string>({.name = "dir"});
-    const auto &file = p.add_leading_positional<std::string>({.name = "file"});
+    const auto &mode = p.add_leading_positional<std::string>({.default_value = {}, .allowed_values = {}, .name = "mode", .help = ""});
+    const auto &dir  = p.add_leading_positional<std::string>({.default_value = {}, .allowed_values = {}, .name = "dir", .help = ""});
+    const auto &file = p.add_leading_positional<std::string>({.default_value = {}, .allowed_values = {}, .name = "file", .help = ""});
 
-    const auto &type = p.add<std::string>({.name = "type"});
-    const auto &permissions = p.add<std::string>({.name = "permissions"});
-    const auto &compression = p.add<std::string>({.name = "compression"});
+    const auto &type = p.add<std::string>({.default_value = {}, .allowed_values = {}, .name = "type", .help = ""});
+    const auto &permissions = p.add<std::string>({.default_value = {}, .allowed_values = {}, .name = "permissions", .help = ""});
+    const auto &compression = p.add<std::string>({.default_value = {}, .allowed_values = {}, .name = "compression", .help = ""});
 
     SECTION("Only positional") {
         constexpr int argc = 4;
@@ -81,13 +81,13 @@ TEST_CASE("PositionalSubparser", "Parsing") {
     auto &read = subparsers["read"];
     auto &append = subparsers["append"];
 
-    const auto &output_path = write.add_leading_positional<std::string>({.name = "output_path"});
-    const auto &read_input_path = read.add_leading_positional<std::string>({.name = "read_input_path"});
-    const auto &append_input_path = append.add_leading_positional<std::string>({.name = "append_input_path"});
-    const auto &append_data = append.add_leading_positional<std::string>({.name = "append_data"});
+    const auto &output_path = write.add_leading_positional<std::string>({.default_value = {}, .allowed_values = {}, .name = "output_path", .help = ""});
+    const auto &read_input_path = read.add_leading_positional<std::string>({.default_value = {}, .allowed_values = {}, .name = "read_input_path", .help = ""});
+    const auto &append_input_path = append.add_leading_positional<std::string>({.default_value = {}, .allowed_values = {}, .name = "append_input_path", .help = ""});
+    const auto &append_data = append.add_leading_positional<std::string>({.default_value = {}, .allowed_values = {}, .name = "append_data", .help = ""});
 
-    const auto &permissions = p.add<std::string>({.name = "permissions"});
-    const auto &compression = p.add<std::string>({.name = "compression"});
+    p.add<std::string>({.default_value = {}, .allowed_values = {}, .name = "permissions", .help = ""});
+    p.add<std::string>({.default_value = {}, .allowed_values = {}, .name = "compression", .help = ""});
 
     SECTION("write") {
         constexpr int argc = 5;

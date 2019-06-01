@@ -10,7 +10,7 @@ include_directories(
 
 # Flags
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++") # -ggdb3 -O0
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra $ENV{STDLIB}")
 
 # Shared library
 add_library(argparse SHARED

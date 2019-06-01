@@ -14,9 +14,9 @@ TEST_CASE("Subparser", "Subparsing") {
     auto &stop = subparsers["stop"];
     auto &pause = subparsers["pause"];
 
-    const auto &song_name = play.add<std::string>({.name = "song_name"});
-    const auto &delay = stop.add<uint64_t>({.name = "delay"});
-    const auto &seconds = pause.add<uint64_t>({.name = "seconds"});
+    const auto &song_name = play.add(argparse::Config<std::string>{.default_value = {}, .allowed_values = {}, .name = "song_name"});
+    const auto &delay = stop.add(argparse::Config<uint64_t>{.default_value = {}, .allowed_values = {}, .name = "delay"});
+    const auto &seconds = pause.add(argparse::Config<uint64_t>{.default_value = {}, .allowed_values = {}, .name = "seconds"});
 
     SECTION("play") {
         constexpr int argc = 8;

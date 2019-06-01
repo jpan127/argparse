@@ -21,11 +21,18 @@ feature | [![Build Status](https://travis-ci.org/jpan127/argparse.svg?branch=fea
 OS     | Compiler
 ------ | ------
 Linux  | Clang 8.X
+Linux  | Clang 7.X
+Linux  | Clang 6.X
+Linux  | GCC 8.X
+Linux  | GCC 7.X
+Linux  | GCC 6.X
+Linux  | GCC 5.X
 
 # Usage
 
 ## 1. Create a `Parser` object
 ```c++
+#include "argparse/argparse.h"
 argparse::Parser p("my name", "my cool program");
 ```
 
@@ -40,7 +47,7 @@ argparse::Parser p("my name", "my cool program");
 - The required flag tells the parser to enforce any options to be present
 
 ```c++
-const auto type = p.add<std::string>({
+const auto type = p.add(argparse::Config<std::string>{
     .default_value = "yaml",
     .allowed_values = {"cpp", "yaml", "py"},
     .name = "type",
@@ -56,9 +63,9 @@ const auto type = p.add<std::string>({
 - The positional arguments are expected in the order they are added
 
 ```c++
-const auto first  = p.add_leading_positional<std::string>({ .name = "first"  });
-const auto second = p.add_leading_positional<std::string>({ .name = "second" });
-const auto third  = p.add_leading_positional<std::string>({ .name = "third"  });
+const auto first  = p.add_leading_positional(argparse::Config<std::string>{ .name = "first"  });
+const auto second = p.add_leading_positional(argparse::Config<std::string>{ .name = "second" });
+const auto third  = p.add_leading_positional(argparse::Config<std::string>{ .name = "third"  });
 
 // Expected call
 <PROGRAM_NAME> <first VALUE> <second VALUE> <third VALUE>
@@ -71,7 +78,7 @@ const auto third  = p.add_leading_positional<std::string>({ .name = "third"  });
 - It will parse all the values after the `--name` or `-letter` flag until the next flag
 
 ```c++
-const auto values = p.add_multivalent<std::string>({ .name = "values" });
+const auto values = p.add_multivalent(argparse::Config<std::string>{ .name = "values" });
 
 // Expected call
 <PROGRAM_NAME> --values value1 value2 value3
@@ -97,7 +104,7 @@ const auto &remaining_arguments = p.parse(argc, argv);
 
 ```c++
 // Example option
-const auto option = p.add<std::string>({ ... });
+const auto option = p.add(argparse::Config<std::string>{ ... });
 
 // We can assume the pointer is valid
 assert(option);
@@ -158,15 +165,24 @@ auto &write  = subparsers["write"];
 auto &append = subparsers["append"];
 
 // Add options for each subparser
-const auto read_only_option = read.add<std::string>({ .name = "read_only_option" });
-const auto write_only_option = write.add<std::string>({ .name = "write_only_option" });
-const auto append_only_option = append.add<std::string>({ .name = "append_only_option" });
+const auto read_only_option = read.add(argparse::Config<std::string>{ .name = "read_only_option" });
+const auto write_only_option = write.add(argparse::Config<std::string>{ .name = "write_only_option" });
+const auto append_only_option = append.add(argparse::Config<std::string>{ .name = "append_only_option" });
 
 // Expected call
 <PROGRAM_NAME> <MODE> <MODE OPTIONS>
 ./sample read --read_only_option option_value
 ./sample write --write_only_option option_value
 ./sample append --append_only_option option_value
+```
+
+## Syntax
+
+The add functions take a structure `Config<T>`.  To simplify / prettify the syntax, designated initializers are used in the examples when calling these functions to save a line from declaring the `Config<T>` variable.  With `clang` the type of the desginated initializers can be deduced and the verbosity of `argparse::Config<T>` is not necessary.  However `g++` fails to deduce these contexts, and so all examples and code in this library explicitly specify the object type.  If the user is using `clang` then these can be happily ommitted.
+
+Example `clang`:
+```
+const auto option = p.add<std::string>({ ... });
 ```
 
 ## Supported Types

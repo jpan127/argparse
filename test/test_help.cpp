@@ -10,9 +10,10 @@ TEST_CASE("HelpMessage", "Parsing") {
 
     Parser p("Sample Program", "Testing...");
     replace_exit_cb(p);
-    p.set_callbacks({
-        .help = [&num_times_help_called] { num_times_help_called++; },
-    });
+
+    Parser::Callbacks cbs;
+    cbs.help = [&num_times_help_called] { num_times_help_called++; };
+    p.set_callbacks(std::move(cbs));
 
     SECTION("No required args, so none are missing") {
         constexpr int argc = 1;
@@ -20,9 +21,11 @@ TEST_CASE("HelpMessage", "Parsing") {
             "path",
         };
 
-        p.add<std::string>({
+        p.add(argparse::Config<std::string>{
             .default_value = "a",
+            .allowed_values = {},
             .name = "mode",
+            .help = "",
             .required = false,
         });
         p.parse(argc, argv);
@@ -35,9 +38,11 @@ TEST_CASE("HelpMessage", "Parsing") {
             "path",
         };
 
-        p.add<std::string>({
+        p.add(argparse::Config<std::string>{
             .default_value = "a",
+            .allowed_values = {},
             .name = "mode",
+            .help = "",
             .required = true,
         });
         p.parse(argc, argv);
@@ -51,9 +56,11 @@ TEST_CASE("HelpMessage", "Parsing") {
             "-h",
         };
 
-        p.add<std::string>({
+        p.add(argparse::Config<std::string>{
             .default_value = "a",
+            .allowed_values = {},
             .name = "mode",
+            .help = "",
             .required = false,
         });
         p.parse(argc, argv);
@@ -67,9 +74,11 @@ TEST_CASE("HelpMessage", "Parsing") {
             "--help",
         };
 
-        p.add<std::string>({
+        p.add(argparse::Config<std::string>{
             .default_value = "a",
+            .allowed_values = {},
             .name = "mode",
+            .help = "",
             .required = false,
         });
         p.parse(argc, argv);

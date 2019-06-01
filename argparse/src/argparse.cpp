@@ -49,18 +49,67 @@ Parser::Parser(std::string name, std::string help)
       options_(std::make_unique<Options>()),
       parser_(std::make_unique<detail::Parser>()) {
     // Add a help option by default
-    add<bool>({
+    add(Config<bool>{
+        .default_value = false,
+        .allowed_values = {},
         .name = "help",
-        .letter = 'h',
         .help = "Show help message",
         .required = false,
-        .default_value = false,
+        .letter = 'h',
     });
 
     set_default_callbacks();
 }
 
 Parser::~Parser() = default;
+
+Parser::Parser(const Parser &other) :
+    options_(std::make_unique<Options>(*other.options_)),
+    parser_(std::make_unique<detail::Parser>(*other.parser_)),
+    remaining_args_(other.remaining_args_),
+    existing_args_(other.existing_args_),
+    positionals_(other.positionals_),
+    subparser_(other.subparser_),
+    subparser_group_(other.subparser_group_),
+    selected_subparser_(other.selected_subparser_) {
+}
+
+Parser::Parser(Parser &&other) noexcept :
+    options_(std::move(other.options_)),
+    parser_(std::move(other.parser_)),
+    remaining_args_(std::move(other.remaining_args_)),
+    existing_args_(std::move(other.existing_args_)),
+    positionals_(std::move(other.positionals_)),
+    subparser_(std::move(other.subparser_)),
+    subparser_group_(std::move(other.subparser_group_)),
+    selected_subparser_(std::move(other.selected_subparser_)) {
+}
+
+Parser &Parser::operator=(const Parser &other) {
+    options_ = std::make_unique<Options>(*other.options_);
+    parser_ = std::make_unique<detail::Parser>(*other.parser_);
+    remaining_args_ = other.remaining_args_;
+    existing_args_ = other.existing_args_;
+    positionals_ = other.positionals_;
+    subparser_ = other.subparser_;
+    subparser_group_ = other.subparser_group_;
+    selected_subparser_ = other.selected_subparser_;
+
+    return *this;
+}
+
+Parser &Parser::operator=(Parser &&other) noexcept {
+    options_ = std::move(other.options_);
+    parser_ = std::move(other.parser_);
+    remaining_args_ = std::move(other.remaining_args_);
+    existing_args_ = std::move(other.existing_args_);
+    positionals_ = std::move(other.positionals_);
+    subparser_ = std::move(other.subparser_);
+    subparser_group_ = std::move(other.subparser_group_);
+    selected_subparser_ = std::move(other.selected_subparser_);
+
+    return *this;
+}
 
 template <typename T>
 ConstPlaceHolder<std::vector<T>> Parser::add_multivalent(Config<T> config) {
@@ -92,12 +141,12 @@ ConstPlaceHolder<T> Parser::add(std::string name, // NOLINT(performance-unnecess
     static_assert(supported<T>(), "Must be a valid type");
 
     Config<T> config{
+        .default_value = std::move(default_value),
+        .allowed_values = std::move(allowed_values),
         .name = std::move(name),
         .help = std::move(help),
-        .letter = letter,
         .required = required,
-        .default_value = std::move(default_value),
-        .allowed_values = std::move(allowed_values)
+        .letter = letter,
     };
 
     // Check and update name
@@ -173,8 +222,8 @@ const std::vector<std::string> &Parser::parse(const int argc, const char **argv)
     return parse(argc, argv, true);
 }
 
-std::unordered_map<std::string, Parser> &Parser::add_subparser(std::string &&group,
-                                                               std::unordered_set<std::string> &&allowed_values) {
+std::map<std::string, Parser> &Parser::add_subparser(std::string &&group,
+                                                     std::unordered_set<std::string> &&allowed_values) {
     if (subparser_.has_value()) {
         log_error("Can only register one subparser per parser");
         cbs_.exit();
@@ -185,7 +234,11 @@ std::unordered_map<std::string, Parser> &Parser::add_subparser(std::string &&gro
     subparser_.emplace();
 
     for (auto &&av : allowed_values) {
-        subparser_.value().emplace(av, av);
+        subparser_.value().emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(av),
+            std::forward_as_tuple(av)
+        );
     }
 
     return subparser_.value();
@@ -374,10 +427,10 @@ bool Parser::check_requirements() const {
 void Parser::set_default_callbacks() {
     cbs_.exit = [] { throw std::runtime_error("Parsing failed"); };
     cbs_.help = [] { };
-    cbs_.missing = [this](const auto &s) {
+    cbs_.missing = [](const auto &s) {
         log_error("Missing required argument : ", s);
     };
-    cbs_.invalid = [this](const auto &name, const auto &values) {
+    cbs_.invalid = [](const auto &name, const auto &values) {
         std::string values_combined = "{";
         for (const auto &value : values) {
             values_combined += " " + value;
@@ -386,7 +439,7 @@ void Parser::set_default_callbacks() {
         const char *v = values.empty() ? "???" : values_combined.c_str();
         log_error("Argument invalid : [ --", name, "=", v, "]");
     };
-    cbs_.not_allowed = [this](const auto &name, const auto &values) {
+    cbs_.not_allowed = [](const auto &name, const auto &values) {
         std::string values_combined = "{";
         for (const auto &value : values) {
             values_combined += " " + value;

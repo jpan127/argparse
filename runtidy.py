@@ -21,7 +21,7 @@ def make_tidy_command(file, clang_tidy_binary, checks, header_filter, cxxflags):
     return shlex.split(command)
 
 
-def run_tidy(args, task_queue, lock, failed_files):
+def run_tidy(args, task_queue, lock, error_queue, failed_files):
     # Loop until queue is empty
     while True:
         # Dequeue
@@ -32,18 +32,29 @@ def run_tidy(args, task_queue, lock, failed_files):
                                     args.header_filter, args.cxxflags)
 
         # Run command
-        process = subprocess.Popen(command, stderr=subprocess.PIPE)
-        _, err = process.communicate()
+        try:
+            process = subprocess.Popen(command, stderr=subprocess.PIPE)
+            _, err = process.communicate()
+        except Exception as e:
+            with lock:
+                error_queue.put("Error invoking clang tidy : {}".format(e))
+                failed_files.append(file)
+
+            with task_queue.mutex:
+                task_queue.queue.clear()
+                task_queue.all_tasks_done.notify_all()
+                task_queue.unfinished_tasks = 0
+
+            return
 
         # Mark as failed
         if process.returncode != 0:
             with lock:
                 failed_files.append(file)
 
-        # Print stderr
+        # Print stderr (which is stdout from clang tidy)
         if err:
-            with lock:
-                sys.stderr.write(err.decode('utf-8') + '\n')
+            sys.stderr.write("{}: {}".format(file, err.decode('utf-8')))
 
         # Mark as done
         task_queue.task_done()
@@ -52,7 +63,7 @@ def run_tidy(args, task_queue, lock, failed_files):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--checks', required=True)
-    parser.add_argument('--clang-tidy-binary', default='clang-tidy-8')
+    parser.add_argument('--clang-tidy-binary')
     parser.add_argument('--cxxflags', required=True)
     parser.add_argument('--header-filter', required=True)
     parser.add_argument('files', nargs='*')
@@ -62,15 +73,15 @@ def parse_args():
 def spin(args):
     NUM_THREADS = multiprocessing.cpu_count()
 
-    # Queue of tasks
-    # Shared objects
+    # Queue of tasks / Shared objects
     task_queue = queue.Queue(NUM_THREADS)
+    error_queue = queue.Queue()
     failed_files = []
     lock = threading.Lock()
 
     # Spin threads
     for _ in range(NUM_THREADS):
-        t = threading.Thread(target=run_tidy, args=(args, task_queue, lock, failed_files))
+        t = threading.Thread(target=run_tidy, args=(args, task_queue, lock, error_queue, failed_files))
         t.daemon = True
         t.start()
 
@@ -82,9 +93,13 @@ def spin(args):
     task_queue.join()
 
     # Check for failures
+    if not error_queue.empty():
+        print("Errors:")
+        while not error_queue.empty():
+            print(" ", error_queue.get())
+        sys.exit(1)
     if failed_files:
         sys.exit(1)
-
 
 def main():
     # Parse args
