@@ -23,21 +23,21 @@ SUPRESSED_CHECKS="\
 -readability-named-parameter\
 "
 
-if [[ "$OSTYPE" == "msys" ]]; then
-    CLANG_TIDY_PATH="clang-tidy.exe"
-    STDLIB=""
-    EXTRA_FLAGS="-Xclang -flto-visibility-public-std"
-elif [[ "$OSTYPE" == "linux-gnu" ]]; then
-    STDLIB="-stdlib=libc++"
-    CLANG_TIDY_PATH="clang-tidy-8"
-    EXTRA_FLAGS=""
+if [[ -z "${CLANG_TIDY}" ]]; then
+    # Default
+    CLANG_TIDY="clang-tidy-8"
+    # If clang doesn't exist, exit
+    if ! command -v $CLANG_TIDY &> /dev/null ; then
+        exit 0
+    fi
 fi
 
 # Compiler flags
-FLAGS="-std=c++14 $STDLIB $EXTRA_FLAGS -Imodules/optional -Iargparse/include -Imodules/catch2"
+FLAGS="-std=c++14 -stdlib=libc++ -Imodules/optional -Iargparse/include -Imodules/catch2"
 
 # Run clang-tidy
 python3 runtidy.py                    \
+    --clang-tidy-binary=${CLANG_TIDY} \
     --checks=*,$SUPRESSED_CHECKS      \
     --header-filter=argparse/include/ \
     --cxxflags="$FLAGS"               \

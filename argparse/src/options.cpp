@@ -35,7 +35,7 @@ std::string Options::usage_string() const {
 }
 
 std::string Options::display_string() const {
-    OptionTable table({{"Required", "Positional", "Name", "Letter", "Type", "Default", "Help", "Allowed Values"}});
+    OptionTable table(OptionTable::Row{{"Required", "Positional", "Name", "Letter", "Type", "Default", "Help", "Allowed Values"}});
 
     for (const auto &pair : options_) {
         const auto &option = pair.second;

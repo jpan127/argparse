@@ -114,7 +114,14 @@ TEST_CASE("RemainingArguments", "Parsing") {
     };
 
     SECTION("3 options with {1, 2, 3} values respectively, only one is expected") {
-        p.add<std::string>({.letter = 'a'});
+        p.add(argparse::Config<std::string>{
+            .default_value = {},
+            .allowed_values = {},
+            .name = "",
+            .help = "",
+            .required = false,
+            .letter = 'a'
+        });
 
         const auto &remaining_args = p.parse(argc, argv);
         REQUIRE(remaining_args.size() == 7);
@@ -157,9 +164,13 @@ TEST_CASE("Letter", "Parsing") {
     };
 
     SECTION("Only letter") {
-        const auto day = p.add<std::string>({
-            .letter = 'd',
+        const auto day = p.add(argparse::Config<std::string>{
+            .default_value = {},
+            .allowed_values = {},
+            .name = "",
+            .help = "",
             .required = true,
+            .letter = 'd',
         });
         p.parse(argc, argv);
 
@@ -168,10 +179,13 @@ TEST_CASE("Letter", "Parsing") {
     }
 
     SECTION("Name and letter, but use letter") {
-        const auto day = p.add<std::string>({
+        const auto day = p.add(argparse::Config<std::string>{
+            .default_value = {},
+            .allowed_values = {},
             .name = "day",
-            .letter = 'd',
+            .help = "",
             .required = true,
+            .letter = 'd',
         });
         p.parse(argc, argv);
 
@@ -180,10 +194,13 @@ TEST_CASE("Letter", "Parsing") {
     }
 
     SECTION("Name and letter, but use name") {
-        const auto day = p.add<std::string>({
+        const auto day = p.add(argparse::Config<std::string>{
+            .default_value = {},
+            .allowed_values = {},
             .name = "day",
-            .letter = 'd',
+            .help = "",
             .required = true,
+            .letter = 'd',
         });
         p.parse(argc, argv);
 
@@ -203,8 +220,8 @@ TEST_CASE("EqualsSyntax", "Parsing") {
         "-m=january",
     };
 
-    const auto day = p.add<std::string>({.name = "day"});
-    const auto month = p.add<std::string>({.letter = 'm'});
+    const auto day = p.add(argparse::Config<std::string>{.default_value = {}, .allowed_values = {}, .name = "day", .help = ""});
+    const auto month = p.add(argparse::Config<std::string>{.default_value = {}, .allowed_values = {}, .name = "", .help = "", .required = false, .letter = 'm'});
 
     p.parse(argc, argv);
 

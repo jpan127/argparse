@@ -12,7 +12,7 @@ TEST_CASE("CenterAlignment", "Table") {
         "|  a  |  b   |  c  |\n"
         "--------------------\n";
 
-    Table<3> table({{"first", "second", "third"}});
+    Table<3> table(Table<3>::Row{{"first", "second", "third"}});
     table.add_row({{"a", "b", "c"}});
     REQUIRE(table.display() == std::string(kExpected));
 }
@@ -26,7 +26,7 @@ TEST_CASE("LeftAlignment", "Table") {
         "|a    |b     |c    |\n"
         "--------------------\n";
 
-    Table<3, Alignment::Left> table({{"first", "second", "third"}});
+    Table<3, Alignment::Left> table(Table<3, Alignment::Left>::Row{{"first", "second", "third"}});
     table.add_row({{"a", "b", "c"}});
     REQUIRE(table.display() == std::string(kExpected));
 }
@@ -40,7 +40,7 @@ TEST_CASE("RightAlignment", "Table") {
         "|    a|     b|    c|\n"
         "--------------------\n";
 
-    Table<3, Alignment::Right> table({{"first", "second", "third"}});
+    Table<3, Alignment::Right> table(Table<3, Alignment::Right>::Row{{"first", "second", "third"}});
     table.add_row({{"a", "b", "c"}});
     REQUIRE(table.display() == std::string(kExpected));
 }
@@ -58,7 +58,7 @@ TEST_CASE("Big", "Table") {
         "|hellooooo| myyyyy |beautifulllll|worlddddd| !!!!!  |\n"
         "-----------------------------------------------------\n";
 
-    Table<5> table({{"COLUMN_1", "COLUMN_2", "COLUMN_3", "COLUMN_4", "COLUMN_5"}});
+    Table<5> table(Table<5>::Row{{"COLUMN_1", "COLUMN_2", "COLUMN_3", "COLUMN_4", "COLUMN_5"}});
     table.add_row({{"hello", "my", "beautiful", "world", "!"}});
     table.add_row({{"helloo", "myy", "beautifull", "worldd", "!!"}});
     table.add_row({{"hellooo", "myyy", "beautifulll", "worlddd", "!!!"}});

@@ -2,7 +2,9 @@
 
 #include "convert.h"
 
+#include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <sstream>
 
 namespace argparse {

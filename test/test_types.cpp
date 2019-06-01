@@ -9,19 +9,19 @@ TEST_CASE("AllTypes", "Parsing") {
     Parser p;
     replace_exit_cb(p);
 
-    const auto opt_std_string = p.add<std::string>({.name = "opt_std_string"});
-    const auto opt_double = p.add<double>({.name = "opt_double"});
-    const auto opt_float = p.add<float>({.name = "opt_float"});
-    const auto opt_uint64_t = p.add<uint64_t>({.name = "opt_uint64_t"});
-    const auto opt_int64_t = p.add<int64_t>({.name = "opt_int64_t"});
-    const auto opt_uint32_t = p.add<uint32_t>({.name = "opt_uint32_t"});
-    const auto opt_int32_t = p.add<int32_t>({.name = "opt_int32_t"});
-    const auto opt_uint16_t = p.add<uint16_t>({.name = "opt_uint16_t"});
-    const auto opt_int16_t = p.add<int16_t>({.name = "opt_int16_t"});
-    const auto opt_uint8_t = p.add<uint8_t>({.name = "opt_uint8_t"});
-    const auto opt_int8_t = p.add<int8_t>({.name = "opt_int8_t"});
-    const auto opt_bool = p.add<bool>({.name = "opt_bool"});
-    const auto opt_char = p.add<char>({.name = "opt_char"});
+    const auto opt_std_string = p.add(argparse::Config<std::string>{.default_value = {}, .allowed_values = {}, .name = "opt_std_string"});
+    const auto opt_double = p.add(argparse::Config<double>{.default_value = {}, .allowed_values = {}, .name = "opt_double"});
+    const auto opt_float = p.add(argparse::Config<float>{.default_value = {}, .allowed_values = {}, .name = "opt_float"});
+    const auto opt_uint64_t = p.add(argparse::Config<uint64_t>{.default_value = {}, .allowed_values = {}, .name = "opt_uint64_t"});
+    const auto opt_int64_t = p.add(argparse::Config<int64_t>{.default_value = {}, .allowed_values = {}, .name = "opt_int64_t"});
+    const auto opt_uint32_t = p.add(argparse::Config<uint32_t>{.default_value = {}, .allowed_values = {}, .name = "opt_uint32_t"});
+    const auto opt_int32_t = p.add(argparse::Config<int32_t>{.default_value = {}, .allowed_values = {}, .name = "opt_int32_t"});
+    const auto opt_uint16_t = p.add(argparse::Config<uint16_t>{.default_value = {}, .allowed_values = {}, .name = "opt_uint16_t"});
+    const auto opt_int16_t = p.add(argparse::Config<int16_t>{.default_value = {}, .allowed_values = {}, .name = "opt_int16_t"});
+    const auto opt_uint8_t = p.add(argparse::Config<uint8_t>{.default_value = {}, .allowed_values = {}, .name = "opt_uint8_t"});
+    const auto opt_int8_t = p.add(argparse::Config<int8_t>{.default_value = {}, .allowed_values = {}, .name = "opt_int8_t"});
+    const auto opt_bool = p.add(argparse::Config<bool>{.default_value = {}, .allowed_values = {}, .name = "opt_bool"});
+    const auto opt_char = p.add(argparse::Config<char>{.default_value = {}, .allowed_values = {}, .name = "opt_char"});
 
     constexpr int argc = 26;
     const char *argv[argc] = {

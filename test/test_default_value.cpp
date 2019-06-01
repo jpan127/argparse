@@ -8,9 +8,11 @@ using namespace argparse;
 TEST_CASE("DefaultValue", "Parsing") {
     Parser p;
     replace_exit_cb(p);
-    const auto &mode = p.add<std::string>({
+    const auto &mode = p.add(argparse::Config<std::string>{
         .default_value = "walk",
+        .allowed_values = {},
         .name = "mode",
+        .help = "",
         .required = true,
     });
 

@@ -8,9 +8,11 @@ using namespace argparse;
 TEST_CASE("AllowedValues", "Parsing") {
     Parser p;
     replace_exit_cb(p);
-    const auto &mode = p.add<std::string>({
+    const auto &mode = p.add(argparse::Config<std::string>{
+        .default_value = {},
         .allowed_values = {"walk", "run", "jog", "skip"},
         .name = "mode",
+        .help = "",
         .required = true,
     });
 
@@ -36,9 +38,9 @@ TEST_CASE("AllowedValues", "Parsing") {
         };
 
         bool called = false;
-        p.set_callbacks({
-            .not_allowed = [&called](auto, auto) { called = true; }
-        });
+        Parser::Callbacks cbs;
+        cbs.not_allowed = [&called](auto, auto) { called = true; };
+        p.set_callbacks(std::move(cbs));
 
         p.parse(argc, argv);
 

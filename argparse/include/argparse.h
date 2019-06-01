@@ -4,9 +4,9 @@
 #include "placeholder.h"
 #include "std_optional.h"
 
+#include <map>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -48,11 +48,17 @@ class Parser {
     /// Destructor
     ~Parser();
 
-    /// No copy, move, or assignment
-    Parser(const Parser &other) = delete;
-    Parser(Parser &&other) = delete;
-    Parser &operator=(const Parser &other) = delete;
-    Parser &operator=(Parser &&other) = delete;
+    /// Copy Constructor
+    Parser(const Parser &other);
+
+    /// Move Constructor
+    Parser(Parser &&other) noexcept;
+
+    /// Copy Assignment
+    Parser &operator=(const Parser &other);
+
+    /// Move Assignment
+    Parser &operator=(Parser &&other) noexcept;
 
     /// Add an option that can have multiple values
     /// \param config Configuration for the option
@@ -108,8 +114,8 @@ class Parser {
     ///   b.add({.name = "option_only_for_b"});
     ///   c.add({.name = "option_only_for_c"});
     /// \endcode
-    std::unordered_map<std::string, Parser> &add_subparser(std::string &&group,
-                                                           std::unordered_set<std::string> &&allowed_values);
+    std::map<std::string, Parser> &add_subparser(std::string &&group,
+                                                 std::unordered_set<std::string> &&allowed_values);
 
     /// Return the key of which subparser is currently chosen
     const std::string &subparser() const {
@@ -139,7 +145,7 @@ class Parser {
     std::vector<std::string> positionals_;
 
     /// Map of subparser name to subparser
-    pstd::optional<std::unordered_map<std::string, Parser>> subparser_;
+    pstd::optional<std::map<std::string, Parser>> subparser_;
 
     /// Name of the subparser group
     pstd::optional<std::string> subparser_group_;
