@@ -29,6 +29,15 @@ void Parser::parse_arg(Args &args, std::string &last_option, std::string &&s, bo
     } else if (is_option(s)) {
         // If this is an option, set it as the option for future token
         strip_prefix(s);
+
+        // Handle key=value syntax by adding first value
+        if (s.find('=') != std::string::npos) {
+            last_option = s.substr(0, s.find('='));
+            args.create(last_option);
+            args.insert(last_option, s.substr(s.find('=') + 1, s.length()));
+            return;
+        }
+
         last_option = std::move(s);
         args.create(last_option);
     } else {
