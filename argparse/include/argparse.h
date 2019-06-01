@@ -37,6 +37,7 @@ class Parser {
         std::function<void()> help;
         std::function<void(const std::string &)> missing;
         std::function<void(const std::string &, const std::vector<std::string> &)> invalid;
+        std::function<void(const std::string &, const std::vector<std::string> &)> not_allowed;
     };
 
     /// Constructor
