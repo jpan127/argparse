@@ -157,7 +157,13 @@ void Parser::help() const {
     std::cout << '\n';
 
     // Options table
-    std::cout << "Options:\n" << options_->display_string() << std::endl;
+    std::cout << "Main Parser Options:\n" << options_->display_string() << std::endl;
+
+    if (subparser_.has_value()) {
+        for (const auto &pair : subparser_.value()) {
+            std::cout << "[" << pair.first << "] Parser Options:\n" << pair.second.options_->display_string() << std::endl;
+        }
+    }
 
     cbs_.help();
 }
